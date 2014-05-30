@@ -1,0 +1,403 @@
+\documentclass[a4paper]{article}
+%\documentclass[twocolumn]{article}
+
+\usepackage{graphicx}
+\usepackage{listings}
+\usepackage{xcolor}
+%\usepackage{enumitem}
+\usepackage{enumerate}
+\usepackage{CJKutf8} %注意这里用的是CJKutf8而不是CJK
+\usepackage{indentfirst}
+
+\usepackage{tikz} % 画流程图用的
+\usepackage{qtree}
+\usepackage{indentfirst}%英文首行缩进
+\usepackage{fancyhdr} % 排版格式
+\usepackage{hyphenat} % 单词断字
+\usepackage{amsmath} % for {aligned}, 公式换行
+\usepackage{multicol}% 多栏排版
+\usepackage{balance}% 双栏最后一页对齐
+\usepackage{subfigure}% 多图
+\usepackage{booktabs}% 表格画线，\toprule, \midrule, \bottomrule
+\usepackage{ulem}
+%\usepackage{clrscode}
+
+% in texlive-science
+\usepackage{algorithm}
+\usepackage{algpseudocode}% an improvement from algorithmicx for algorithmic
+
+\usepackage{setspace}
+ 
+\usepackage[utf8]{inputenc}
+
+
+\usepackage{xspace}
+
+%======= XXX 要编译两遍才能有标签和引用等效果 =====%
+ 
+\usepackage[top=2.54cm,bottom=2.54cm,left=3.17cm,right=3.17cm]{geometry} % a4paper standard
+\usepackage[unicode=true]{hyperref} %注意这里不能加CJKbookmarks=true，否则会乱码
+\usetikzlibrary{arrows,decorations.pathmorphing,backgrounds,positioning,fit,automata,trees}
+
+\hypersetup{
+    pdfauthor={ouoline},
+    %pdftitle={test},
+    %pdfsubject={Subject},
+    %pdfkeywords={Keyword1, Keyword2, ...},
+    %pdfcreator={LaTeX with hyperref package},
+    %pdfproducer = {dvips + ps2pdf},
+    %bookmarksnumbered=true,
+    %colorlinks=no,
+    pdfborder={0 0 0},
+    %bookmarksopen=true,
+}
+%------------------------------------------------------------------%
+ 
+\setcounter{secnumdepth}{5} % 编号的深度，4 表示到 paragraph 一级
+%\setcounter{tocdepth}{4} % 目录中的深度
+ 
+%------------------------------------------------------------------%
+\usepackage{color}
+\definecolor{lightgray}{rgb}{.9,.9,.9}
+\definecolor{darkgray}{rgb}{.4,.4,.4}
+\definecolor{purple}{rgb}{0.65, 0.12, 0.82}
+
+\lstdefinelanguage{JavaScript}{
+  keywords={typeof, new, true, false, catch, function, return, null, catch, switch, var, if, in, while, do, else, case, break},
+  keywordstyle=\color{blue}\bfseries,
+  ndkeywords={class, export, boolean, throw, implements, import, this},
+  ndkeywordstyle=\color{darkgray}\bfseries,
+  identifierstyle=\color{black},
+  sensitive=false,
+  comment=[l]{//},
+  morecomment=[s]{/*}{*/},
+  commentstyle=\color{purple}\ttfamily,
+  stringstyle=\color{red}\ttfamily,
+  morestring=[b]',
+  morestring=[b]"
+}
+
+\lstset{% general command to set parameter(s)
+        language={JavaScript},
+        %numbers=left,
+        basicstyle=\tt, % 默认对所有字符使用等宽字体
+        keywordstyle=\color{blue},%\bfseries\underbar% underlined bold black keywords
+        identifierstyle=,           % nothing happens
+        stringstyle=\color{purple},
+        commentstyle=\color{gray},
+        escapechar=`,
+        showstringspaces=false,     % no special string spaces
+        breaklines=true, % 自动换行
+    }
+
+
+%------------------------------------------------------------------%
+ 
+% 自己定义新命令，参数依次是
+% \newcommand{新命令名称（带反斜线）}[参数个数（最多9个）]{命令定义}
+% 实际上相当于宏替换
+% \newcommand{\sayhelloto}[1]{hello,#1}
+\newcommand{\template}[3] {
+    \item \textbf{#1}
+    \begin{enumerate}
+        \item[\textbf{#2}] #3 
+    \end{enumerate}
+}
+\newcommand{\jie}[2]{\template{#1}{解}{#2}}
+\newcommand{\zheng}[2]{\template{#1}{证明}{#2}}
+ 
+%------------------------------------------------------------------%
+ 
+% 放在导言区，设置全局行距
+\linespread{1.6}
+ 
+% 放在导言区，公式编号和章节相关
+%\makeatletter % `@' now normal ``letter''
+%\@addtoreset{equation}{section}
+%\makeatother % `@' is restored as ``non-letter''
+%\renewcommand\theequation{\oldstylenums{\thesection}%
+%.\oldstylenums{\arabic{equation}}}
+
+
+\begin{document}
+
+\begin{CJK*}{UTF8}{gbsn}
+    \CJKindent
+    \setlength{\parindent}{2em} % no indent
+ 
+    \pagestyle{fancy}
+  
+    %\begin{center}
+    %\Huge{title}
+    %\vspace{25pt} % 25pt between title and text
+    %\end{center}
+    \title{\huge{计算机与网络体系结构（2）}\\\Large{编译原理}\\{\large Project 1：使用自动机分析Bib\TeX\xspace文件}}
+    \author{软件11\hspace{10pt}陈华榕\hspace{10pt}2011013236}
+    \date{\today}
+    \maketitle
+    \tableofcontents    
+    \newpage
+
+    \section{实验背景}
+    \subsection{实验环境}
+    如需复现实验结果请准备一台PC机并安装Windows/OS X/Linux等桌面系统，然后安装$>=0.10.24$版本的\textit{Node}。
+
+    \subsection{目录结构}
+{
+\tikzstyle{every node}=[draw=black,thick,anchor=west]
+\tikzstyle{selected}=[draw=red,fill=red!30]
+\tikzstyle{optional}=[dashed,fill=gray!50]
+\begin{tikzpicture}[%
+  grow via three points={one child at (0.5,-0.7) and
+  two children at (0.5,-0.7) and (0.5,-1.4)},
+  edge from parent path={(\tikzparentnode.south) |- (\tikzchildnode.west)}]
+  \node {2011013236}
+    child { node [optional] {source $|$ 源码}
+        child { node [optional] {BibJS}
+            child { node [optional] {lib $|$ 库文件}
+                child { node [optional] {automata $|$ 自动机\footnotemark[1]}
+                    child { node {inner-data.js $|$ 定义自动机的数据}}
+                    child { node {runner.js $|$ 自动机的运行器}}
+                }
+                child [missing] {}
+                child [missing] {}
+                child { node [optional] {scanner $|$ 词法单元扫描器}
+                    child { node {token-types.js $|$ 支持的词法单元类型}}
+                    child { node {char-token.js $|$ 字符单元}}
+                    child { node {token.js $|$ 词法单元}}
+                    child { node {scanner.js $|$ 扫描器}}
+                }
+                child [missing] {}
+                child [missing] {}
+                child [missing] {}
+                child [missing] {}
+                child { node {bibdad.js $|$ Bib解析器}}
+            }
+                child [missing] {}
+                child [missing] {}
+                child [missing] {}
+                child [missing] {}
+                child [missing] {}
+                child [missing] {}
+                child [missing] {}
+                child [missing] {}
+                child [missing] {}
+            child { node [optional] {tests $|$ 自动化测试}
+                child { node [optional] {data $|$ 测试数据}
+                    child { node {example.bib $|$ 测试文件}}
+                }
+                child [missing] {}
+                child { node [selected] {test-bib.js $|$ 测试执行入口，可通过npm调用}}
+            }
+                child [missing] {}
+                child [missing] {}
+                child [missing] {}
+            child { node {index.js $|$ 库入口}}
+    child { node {... $|$ 其他文件，包括定义库的package.json等}}
+        }
+    }
+                child [missing] {}
+                child [missing] {}
+                child [missing] {}
+                child [missing] {}
+                child [missing] {}
+                child [missing] {}
+                child [missing] {}
+                child [missing] {}
+                child [missing] {}
+                child [missing] {}
+                child [missing] {}
+                child [missing] {}
+                child [missing] {}
+                child [missing] {}
+                child [missing] {}
+                child [missing] {}
+                child [missing] {}
+    child { node {report.pdf $|$ 本报告}}
+    child { node {README.txt $|$ 请先阅读此文件}}
+    child { node {result.txt $|$ 本实验所给example.bib的解析结果}}
+;
+\end{tikzpicture}
+}
+\footnotetext[1]{无$\epsilon$转移的单状态非确定型有限自动机}
+
+    \subsection{完成情况与测试}
+    \label{sec:abouttest}
+    本实验中，通过Node.js完成了一个Bib文件解析库BibJS，可作为包供第三方Node.js应用引入。还借助这个库完成了符合实验要求的测试程序。由于所用编程语言是脚本语言，因此不需要提交可执行的版本。
+    \par 本次作业提交在了Github上，在作业提交的截止时间前以私有库存在，作业提交截止时间后就修改为公开库，git版本库的地址为：\href{https://github.com/Epsirom/BibJS}{https://github.com/Epsirom/BibJS}。
+    \par 如果在安装了npm的机器上进行测试，可以直接在BibJS目录下运行\lstinline[language=sh]{npm test}，将以./tests/data/example.bib为输入，处理结果将输出到./tests/data/result.txt。
+    \par 如果在未安装npm的机器上进行测试，请以BibJS目录为工作目录运行./tests/test-bib.js，即在BibJS目录下运行\lstinline{node ./tests/test-bib.js}。
+    \par 运行测试程序，会将带调试信息的结果输出在命令行，而输出到result.txt的则不带调试信息只保留有效的解析结果。
+
+    \section{实验分析}
+    \subsection{整体思路}
+    我将本次实验目标分为两部分：第一部分通过构建自动机A由字符串分析词法单元；第二部分通过构建自动机B由词法单元构建Bib数据对象。进行Bib解析时，先通过自动机A分析出一个词法单元，将该词法单元作为自动机B的一次输入，然后再通过自动机A分析出一个词法单元作为自动机B的新一次输入，不断进行下去直到发生错误或完整解析了一个Bib对象。
+    \par 两部分所用的自动机都是“无$\epsilon$转移的单状态非确定型有限自动机”，这种自动机是我自行定义的，兼顾DFA的实现简单和NFA的一部分灵活性，能比较方便地应用在本次实验中。
+    \par 实际上本实验的要求可以通过先编写一个涵盖自动机和词法分析的Bib解析库，然后借助该库对输入文件进行分析并按格式输出结果，这样一种方式来完成。我正是这么做的。
+
+    \subsection{无$\epsilon$转移的单状态非确定型有限自动机}
+    由于该自动机与DFA和NFA都有一定相似性，因此这里不给出公理化的定义了。\\\sout{（其实是因为公理化定义太麻烦了）}
+    \par 您可以认为该自动机就是一个DFA，只是它的每个状态都不一定给出字母表中所有可能输入的转移，如果在某状态下输入某字符的转移没有定义，将直接拒绝整个串——这样的方式和NFA是一样的。因此实际上该自动机具有NFA的特征，可称为“非确定型有限自动机”，但它和DFA一样只有单状态，同时没有$\epsilon$转移。
+    \par 这样的自动机是本实验实现的核心所在，各个步骤实际上都是在构建这种自动机来进行状态转移与计算。
+    \subsubsection{自动机数据结构}
+    通过BibJS目录下的./lib/automata/inner-data.js进行自动机的数据结构管理。在其中定义了类AutomataData，有三个数据成员：nodes,start,status。
+    \par 本自动机以字符串作为状态，每个状态的信息记录在nodes中，每个状态都是nodes的一个key，其对应的value是状态的具体设定。start记录的是开始状态。status记录的是当前状态。
+    \par nodes中的状态需要保存三个值：next,accept,back。next是一个对象，accept是布尔值，back是个整数。accept记录这个状态是不是自动机的接受状态。back记录到达这个状态后要把字符串的扫描指针前移多少字节，可视为状态的附加信息。next中每个key都是一个input，其value记录当前状态接收到这样的input后需要转移到哪个新状态。
+
+    \subsubsection{自动机执行器}
+    通过BibJS目录下的./lib/automata/runner.js驱动自动机的执行。在其中定义了类AutomataRunner，其中管理AutomataData对象并提供重启（restart）、单步执行（executeOnce）等方法。
+
+    \subsection{解析词法单元}
+    \subsubsection{实现概况}
+    这部分只负责根据输入串分析出词法单元的类型及其属性。所用输入字符会先封装成CharToken（BibJS/lib/scanner/char-token.js），然后将CharToken的类型作为自动机的输入去驱动自动机的单步执行。每当自动机执行到可接受状态时就说明已经解析出了一个Bib的词法单元Token（BibJS/lib/scanner/token.js），可以返回给调用者并将自动机重启以继续解析下一个词法单元（这样虽然看起来不总是有效的，但它对Bib格式总是有效的）。
+
+    \subsubsection{数据结构}
+    CharToken是单字符的封装词法单元，支持以下类型（这些类型定义在BibJS/lib/scanner/token-types.js中）：\par
+    \begin{tabular}
+        {|c|c|c|}
+        \hline
+        类型 & 简写 & 说明\\\hline
+        TYPE\_START & TS & @号\\\hline
+        EMPTY\_CHAR & EC & 空白符，包括空格、换行、水平制表符、垂直制表符等\\\hline
+        EQUAL & EQ & 等号\\\hline
+        COMMA & CM & 逗号\\\hline
+        QUOTE & QT & 单引号\\\hline
+        DOUBLE\_QUOTE & DQ & 双引号\\\hline
+        LEFT\_BRACE & LB & 左大括号\\\hline
+        RIGHT\_BRACE & RB & 右大括号\\\hline
+        COMMON\_CHAR & CC & 其他字符\\\hline
+        TOO\_LONG & TL & 非单字符，太长了\\\hline
+        TOO\_SHORT & TS & 非单字符，太短了\\\hline
+        ERROR & ER & 出错了\\\hline
+    \end{tabular}
+    \par 这里的简写在下面描述自动机时用到，能让自动机图更美观\sout{（还能少打很多字）}。
+    \par Token用于存放解析出的Bib词法单元，支持以下类型（同样定义在BibJS/lib/scanner/token-types.js中）：\par 
+    \begin{tabular}
+        {|c|c|}
+        \hline
+        类型 & 说明\\\hline
+        CONFERENCE等 & 解析出了这个Bib对象的类型\\\hline
+        LEFT\_BRACE & 左大括号\\\hline
+        CITE\_NAME & 这个Bib对象的引用名，在输出中不显示\\\hline
+        AUTHOR等 & 解析出的Bib对象的具体属性\\\hline
+        RIGHT\_BRACE & 右大括号\\\hline
+        OTHER & 解析出的未知Bib对象的属性\\\hline
+        NO\_MORE & 已经完整扫完了输出串\\\hline
+        UNSUPPORT\_LABEL & 解析出的未知Bib对象的属性\\\hline
+        UNSUPPORT\_TYPE & 解析出的未知Bib对象类型，类似CONFERENCE这样的\\\hline
+        ERROR & 出错了\\\hline
+    \end{tabular}
+    \par Scanner是解析词法单元的主类，定义在BibJS/lib/scanner/scanner.js中，其中有token, str, pointer, automata等数据成员。token是供调用者获取的解析结果，str是输入字符串，pointer是输入串的指针（指示当前扫描到输入串的哪个字符），automata是所用的自动机。
+    \par Scanner中的scan方法是核心所在，在其中先让自动机重启，然后在未出错且未接受的情况下将输入串pointer处的字符封装成CharToken作为输入提供给自动机去单步执行。若执行出错，就设token为ERROR。解析过程中会根据当前的状态对token进行一定设置，因此若转移到了接受状态，就能直接返回了。在自动机单步执行过程中，会对当前状态的back属性有一定响应，具体就是每执行一步就先将pointer自增1，然后根据back调整一次pointer。
+
+    \subsubsection{自动机}
+    如上所述，输入字符集为所有可能的CharToken类型。
+    \par 自动机如图\ref{fig:automata1}。
+    \par 接着讨论一下自动机中各个可接受状态可能会解析得到的Bib词法单元，如下表所示：\\
+    \begin{tabular}
+        {|c|c|c|}
+        \hline
+        可接受状态 & 可能解析得到的Bib词法单元 & 说明\\\hline
+        type\_end & CONFERENCE,PROCEEDINGS等 & 解析出了以@打头的Bib对象类型\\\hline
+        left\_brace & LEFT\_BRACE & 左大括号\\\hline
+        right\_brace & RIGHT\_BRACE & 右大括号\\\hline
+        label\_end & AUTHOR,TITLE等Bib对象属性 & 通过Bib属性的定义方式得到\\\hline
+        label\_end\_no\_back & 同label\_end & 只是back=0罢了\\\hline
+    \end{tabular}
+    \begin{figure}
+    \begin{tikzpicture}[>=stealth',shorten >=1pt,auto,node distance=4cm]
+      \node[initial,state]  (init)                          {init};
+      \node[state]          (ts)    [above right of=init]   {type\_start};
+      \node[state,accepting]          (te)    [right of=ts]           {*type\_end};
+      \node[state,accepting](lb)    [right of=init]         {left\_brace};
+      \node[state,accepting](rb)    [below right of=init]   {right\_brace};
+      \node[state]          (ls)    [below of=init]         {label\_start};
+      \node[state,accepting](le)    [below of=ls]      {*label\_end};
+      \node[state,accepting](lenb)  [below left of=ls]           {label\_end\_no\_back};
+      \node[state]          (lr)    [below right of=ls]     {label\_ready};
+      \node[state]          (lvr)   [right of=lr]           {label\_value\_ready};
+      \node[state]          (dv)    [below left of=lvr]     {dq\_value};
+      \node[state]          (bv)    [below right of=lvr]    {brace\_value};
+      \node[state]          (lg)    [below of=lvr]          {label\_good};
+
+
+      \path[->] (init)      edge    [loop above]    node    {EC}    (init)
+                            edge                    node    {TS}    (ts)
+                            edge                    node    {LB}    (lb)
+                            edge                    node    {RB}    (rb)
+                            edge                    node    {CC}    (ls)
+                (ts)        edge    [loop above]    node    {CC}    (ts)
+                            edge                    node    {EC $|$ LB} (te)
+                (ls)        edge    [loop left]     node    {CC}    (ls)
+                            edge                    node    {CM}    (lenb)
+                            edge                    node    {RB}    (le)
+                            edge                    node    {EQ}    (lvr)
+                            edge                    node    {EC}    (lr)
+                (lr)        edge    [loop below]    node    {EC}    (lr)
+                            edge                    node    {EQ}    (lvr)
+                            edge    [bend right=10]                node    {CM}    (lenb)
+                            edge                    node    {LB}    (le)
+                (lvr)       edge    [loop above]    node    {EC}    (lvr)
+                            edge                    node    {DQ}    (dv)
+                            edge                    node    {LB}    (bv)
+                (dv)        edge    [loop left]     node    {其他字符} (dv)
+                            edge                    node    {DQ}    (lg)
+                (bv)        edge    [loop above]    node    {其他字符} (bv)
+                            edge                    node    {RB}    (lg)
+                (lg)        edge    [bend left=60]                node    {CM}    (lenb)
+                            edge    [bend left=50]                node    {RB}    (le);
+    \end{tikzpicture}
+        \caption{解析语法单元的自动机。其中带星号的状态表示该状态的back为1，不带星号表示back为0}
+        \label{fig:automata1}
+    \end{figure}
+
+    \subsection{解析Bib}
+    \subsubsection{实现概况}
+    这部分借助于前面实现的Scanner对字符串进行Bib词法单元解析并保存，实现了BibDad类，在BibJS/lib/bibdad.js中。
+
+    \subsubsection{数据结构}
+    BibDad的数据成员包括scanner,bibtype,data,automata。
+    \par scanner是一个Scanner对象，bibtype为解析出的Bib对象的类型（比如CONFERENCE），\\data以key-value的方式存储Bib对象的各种属性，automata是这部分用到的自动机。
+
+    \subsubsection{自动机}
+    输入字符集为所有可能的Token类型。
+    \par 自动机如图\ref{fig:automata2}。
+    \par 当自动机转移到finish状态，说明已经完成了一个Bib对象的解析。这之后可以重启自动机继续解析下一个Bib对象。
+    \par BibDad的主要成员方法包括analyze,validata,output。在analyze中，会先重置自动机，然后通过Scanner不断读取词法单元，根据得到的词法单元驱动自动机，直至解析出错或完整解析了一个Bib对象。validate中会根据解析到的Bib对象类型（CONFERENCE等）检查该类型的必要属性是否都已具备。output中会根据解析到的Bib对象属性返回该对象的输出字符串（也就是符合实验要求的输出字符串，未来可考虑重写这部分使之支持完整的Bib格式输出）。
+    \par 在输出处理AUTHOR时，还通过第三个自动机将其中的“~and~”（前后各有1个空格）替换为“,~”（末位有1个空格），其实就是简单的字符串匹配自动机，这里省略。
+
+    \begin{figure}
+    \begin{tikzpicture}[>=stealth',shorten >=1pt,auto,node distance=4cm]
+      \node[initial,state]  (init)                          {init};
+      \node[state]          (tr)        [right of=init]     {type\_ready};
+      \node[state]          (p)         [right of=tr]       {processing};
+      \node[state,accepting](f)         [right of=p]        {finish};
+
+
+      \path[->] (init)      edge                    node    {CF $|$ IP $|$ PC}    (tr)
+                (tr)        edge                    node    {LB}   (p)
+                (p)         edge    [loop above]    node    {AUTHOR,TITLE等Bib属性}  (p)
+                            edge                    node    {RB}  (f);
+    \end{tikzpicture}
+        \caption{解析Bib的自动机。CF表示CONFERENCE，IP表示INPROCEEDINGS，PC表示PROCEEDINGS，LB表示LEFT\_BRACE，RB表示RIGHT\_BRACE。}
+        \label{fig:automata2}
+    \end{figure}
+
+    \subsection{自动化测试}
+    \subsubsection{实现概况}
+    完成了一个自动化测试实例BibJS/tests/test-bib.js，运行方法见\ref{sec:abouttest}。该测试中会依照实验要求将example.bib读入，然后将解析结果输出至result.txt。这两个文件都放在BibJS/tests/data目录下。
+
+    \subsubsection{自动化测试步骤}
+    在该自动化测试中，先从文件中读取输入字符串，然后用它构建BibDad对象，接着不断调用该对象analyze方法，若该方法返回true，说明解析成功，就进行validate，如果仍通过validate就调用output将结果输出到文件。
+    \par 若analyze返回false，说明解析失败，判断此时是完成了解析还是解析过程中出错，如果是解析过程中出错，就打印错误信息（会打印出在输入串的第几个字节解析出错，并打印该字节附近以15字节为半径的字符串，空白符会全部替换为空格），错误信息的显示效果还算不错。
+
+    \section{实验结果}
+    本实验提供的example.bib的解析结果见result.txt。
+    \par 在控制台的输出与result.txt不同，还带有调试信息，您可以试试按\ref{sec:abouttest}的步骤运行。
+    \par 也可以试试修改BibJS/tests/data/example.bib使之不符合Bib规范，再运行看看控制台是怎样输出错误信息的。
+
+\clearpage
+\end{CJK*}
+\end{document}
+
+

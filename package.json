@@ -1,0 +1,24 @@
+{
+    "name": "C2LLVM",
+    "description": "Convert C to LLVM.",
+    "version": "0.0.1",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/Epsirom/C2LLVM"
+    },
+    "main": "./index",
+    "scripts": {
+        "test": "node ./tests/test-main.js"
+    },
+    "engines": {
+        "node": ">=0.10.24"
+    },
+    "readme": "Just enjoy it!",
+    "readmeFilename": "README.md",
+    "bugs": {
+        "url": "https://github.com/Epsirom/C2LLVM/issues"
+    },
+    "homepage": "https://github.com/Epsirom/C2LLVM",
+    "_id": "C2LLVM@0.0.1",
+    "_from": "C2LLVM@*"
+}
