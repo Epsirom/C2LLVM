@@ -6,6 +6,9 @@
         "type": "git",
         "url": "https://github.com/Epsirom/C2LLVM"
     },
+    "dependencies": {
+        "antlr3": "*"
+    },
     "main": "./index",
     "scripts": {
         "test": "node ./tests/test-main.js"
