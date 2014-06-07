@@ -1,4 +1,4 @@
-grammar SimpleCv3;
+grammar SimpleCv4;
 
 options {
     //language = JavaScript;
@@ -36,6 +36,19 @@ tokens {
     FUNC_NAME;
     FUNC_HEADER;
     FUNC_PARAM;
+    FUNC_INVOKE;
+    
+    FOR_STAT;
+    WHILE_STAT;
+    DOWHILE_STAT;
+    IF_STAT;
+    IF_BRANCH;
+    ELSEIF_BRANCH;
+    ELSE_BRANCH;
+    JUMP_STAT;
+    JUMP_RETURN;
+    JUMP_BREAK;
+    JUMP_CONTINUE;
     
     BLOCK;
     EMPTY_BLOCK;
@@ -51,6 +64,49 @@ tokens {
     AND_ASSIGN;
     OR_ASSIGN;
     NOT_ASSIGN;
+    
+    CONDITION;
+    SUB_CONDITION;
+    OR_EXPR;
+    OR_BRANCH;
+    AND_EXPR;
+    AND_BRANCH;
+    SHIFT_EXPR;
+    ADDSUB_EXPR;
+    MULTDIV_EXPR;
+    CASTTYPE;
+    
+    SHL_OP;
+    SHR_OP;
+    ADD_OP;
+    SUB_OP;
+    MULTI_OP;
+    DIV_OP;
+    MOD_OP;
+    
+    RELATION_EXPR;
+    EQUAL_RE;
+    NOTEQUAL_RE;
+    LESS_RE;
+    GREATER_RE;
+    GREATEREQUAL_RE;
+    LESSEQUAL_RE;
+    
+    PREFIX_PLUS;
+    PREFIX_MINUS;
+    PREFIX_NOT;
+    PREFIX_AND;
+    PREFIX_STAR;
+    SIZEOF;
+    
+    POSTFIX_EXPR;
+    POSTFIX;
+    POSTFIX_PLUS;
+    POSTFIX_MINUS;
+    MEMBERVAR;
+    ARRAYINDEX;
+    
+    
 }
 
 program
@@ -79,8 +135,8 @@ libname
     ;
 
 variable
-    :   type declarator (assignmentOp conditionalExpr)? (',' '*'? declarator (assignmentOp conditionalExpr)?)* ';'
-    	-> ^(VAR_DEF type (^(VAR_NAME declarator) ^(DEFAULT_VALUE conditionalExpr?))+)
+    :   type declarator (assignmentOp conditionalExpr)? (',' '*'? declarator (assignmentOp shiftExpr)?)* ';'
+    	-> ^(VAR_DEF type (^(VAR_NAME declarator) ^(DEFAULT_VALUE shiftExpr?))+)
     ;
 
 type
@@ -181,27 +237,34 @@ stat
     ;
 
 forStat
-    :   'for' '(' assignmentExpr ';' conditionalExpr ';' expression ')' block           
+    :   'for' '(' assignmentExpr ';' conditionalExpr ';' expression ')' block 
+    	-> ^(FOR_STAT assignmentExpr conditionalExpr expression block)          
     ;
 
 whileStat
     :   'while' '(' conditionalExpr ')' block
-    |   'do' block 'while' '(' expression ')' ';'
+    -> ^(WHILE_STAT conditionalExpr block)
+    |   'do' block 'while' '(' conditionalExpr ')' ';'
+    -> ^(DOWHILE_STAT block conditionalExpr)
     ;
 
 ifStat
-    :   'if' '(' expression ')' block ( 'else' 'if' '(' expression ')' block )* ( 'else' block )?
+    :   'if' '(' conditionalExpr ')' block ( 'else' 'if' '(' conditionalExpr ')' block )* ( 'else' block )?
+    ->	^(IF_STAT ^(IF_BRANCH conditionalExpr block) ^(ELSEIF_BRANCH conditionalExpr block)* ^(ELSE_BRANCH block)?)
     ;
 
 jumpStat
     :  'continue' ';'
+    ->	^(JUMP_STAT JUMP_CONTINUE)
     |  'break' ';'
-    |  'return' ';'
-    |  'return' expression ';'
+    ->	^(JUMP_STAT JUMP_BREAK)
+    |  'return' (expression)? ';'
+    ->	^(JUMP_STAT ^(JUMP_RETURN expression)?)
     ;
   
 funcInvoke
     :   ID '(' ( shiftExpr ( ',' shiftExpr)* )? ')'
+    ->	^(FUNC_INVOKE ^(FUNC_NAME ID) ^(FUNC_PARAM shiftExpr)*)
     ;
 
 expression
@@ -240,21 +303,39 @@ assignmentOp
 unaryExpr   
     :   postfixExpr
     |   '++' unaryExpr
+    ->	^(PREFIX_PLUS unaryExpr)
     |   '--' unaryExpr
+    ->	^(PREFIX_MINUS unaryExpr)
     |   'sizeof' '(' type ')'
+    ->	^(SIZEOF type)
     |   unaryOp castExpr
     |	funcInvoke
     ;    
 
 unaryOp
     :   '!'
+    ->	PREFIX_NOT
     |   '&'
+    ->	PREFIX_AND
     |   '*'
+    ->	PREFIX_STAR
     ;
 
 postfixExpr
-    :   primaryExpr ('->' ID ('[' shiftExpr ']')? | '++' | '--' | '[' expression ']')*
+    :   primaryExpr (postfix)*   
+    ->	^(POSTFIX_EXPR primaryExpr ^(POSTFIX postfix)*)
     ; 
+
+postfix
+    :	'->' ID ('[' shiftExpr ']')? 
+    ->	^(MEMBERVAR ID ^(ARRAYINDEX shiftExpr)?)
+    |  '++' 
+    ->	^(POSTFIX_PLUS)
+    |  '--' 
+    ->	^(POSTFIX_MINUS)
+    |  '[' expression ']'
+    ->	^(ARRAYINDEX expression)
+    ;
 
 primaryExpr
     :   declarator
@@ -264,41 +345,81 @@ primaryExpr
     ;
 
 conditionalExpr
-    :   logicalOrExpr ('?' expression ':' conditionalExpr)?
+    :   logicalOrExpr
+    -> ^(CONDITION logicalOrExpr)
     ; 
 
 logicalOrExpr
     : logicalAndExpr ('||' logicalAndExpr)*
+    -> ^(OR_EXPR ^(OR_BRANCH logicalAndExpr)+)
     ;
 
 logicalAndExpr
-    : equalityExpr ('&&' equalityExpr)*
+    : relationExpr ('&&' relationExpr)*
+    -> ^(AND_EXPR ^(AND_BRANCH relationExpr)+)
     ;
 
-
-equalityExpr
-    : relationalExpr (('=='|'!=') relationalExpr)*
+relationExpr
+    : shiftExpr (relationOp shiftExpr)*
+    -> ^(RELATION_EXPR shiftExpr (relationOp shiftExpr)*)
     ;
-
-relationalExpr
-    : shiftExpr (('<'|'>'|'<='|'>=') shiftExpr)*
+    
+relationOp
+    :	'=='
+    -> 	EQUAL_RE
+    |	'!='
+    -> 	NOTEQUAL_RE
+    |	'<'
+    -> 	LESS_RE
+    |	'>'
+    -> 	GREATER_RE
+    |	'<='
+    -> 	LESSEQUAL_RE
+    |	'>='	
+    -> 	GREATEREQUAL_RE
     ;
 
 shiftExpr
-    :   addSubExpr (('<<'|'>>') addSubExpr)*
+    :   addSubExpr (shiftOp addSubExpr)*
+    ->	^(SHIFT_EXPR addSubExpr ^(shiftOp addSubExpr)*)
+    ;
+shiftOp
+    :	'<<'
+    ->	SHL_OP
+    |	'>>'
+    ->	SHR_OP
     ;
 
 addSubExpr
-    :   multDivExpr (('+'|'-') multDivExpr)*
+    :   multDivExpr (addSubOp multDivExpr)*
+    ->	^(ADDSUB_EXPR multDivExpr ^(addSubOp multDivExpr)*)
+    ;
+addSubOp
+    :	'+'
+    ->	ADD_OP
+    |	'-'	
+    ->	SUB_OP
     ;
 
 multDivExpr
-    :   castExpr (('*'|'/'|'%') castExpr)*
+    :   castExpr (multDivOp castExpr)*
+    ->	^(MULTDIV_EXPR castExpr ^(multDivOp castExpr)*)
+    ;
+
+multDivOp
+    :	'*'
+    ->	MULTI_OP
+    |	'/'
+    ->	DIV_OP
+    |	'%'
+    ->	MOD_OP
     ;
 
 castExpr
     :   '(' type ')' castExpr
+    ->	^(CASTTYPE type castExpr)
     |	'(' conditionalExpr ')'
+    ->	^(SUB_CONDITION conditionalExpr)
     |   unaryExpr
     ;
 
