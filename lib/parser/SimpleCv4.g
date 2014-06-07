@@ -106,7 +106,7 @@ tokens {
     MEMBERVAR;
     ARRAYINDEX;
     
-    
+    DECLARATOR;
 }
 
 program
@@ -339,6 +339,7 @@ postfix
 
 primaryExpr
     :   declarator
+        -> ^(DECLARATOR declarator)
     |	INT
     |   STRING
     |   '(' expression ')'
