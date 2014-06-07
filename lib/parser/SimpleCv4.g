@@ -1,7 +1,7 @@
 grammar SimpleCv4;
 
 options {
-    //language = JavaScript;
+    language = JavaScript;
     output = AST;
     ASTLabelType=CommonTree;
     backtrack = true;
@@ -136,7 +136,7 @@ libname
 
 variable
     :   type declarator (assignmentOp conditionalExpr)? (',' '*'? declarator (assignmentOp shiftExpr)?)* ';'
-    	-> ^(VAR_DEF type (^(VAR_NAME declarator) ^(DEFAULT_VALUE shiftExpr?))+)
+    	-> ^(VAR_DEF type (^(VAR_NAME declarator) ^(DEFAULT_VALUE shiftExpr)?)+)
     ;
 
 type
