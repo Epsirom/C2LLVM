@@ -108,6 +108,9 @@ tokens {
     
     CONSTNUM;
     DECLARATOR;
+    
+    ASSIGNMENT_LEFT;
+    ASSIGNMENT_RIGHT;
 }
 
 program
@@ -275,7 +278,7 @@ expression
 
 assignmentExpr
     :   unaryExpr (assignmentOp shiftExpr)?
-    	-> ^(ASSIGNMENT unaryExpr (assignmentOp shiftExpr)?)
+    	-> ^(ASSIGNMENT ^(ASSIGNMENT_LEFT unaryExpr) (assignmentOp ^(ASSIGNMENT_RIGHT shiftExpr))?)
     ;
 
 assignmentOp
@@ -344,6 +347,7 @@ primaryExpr
     	-> ^(CONSTNUM INT)
     |   STRING
     |   '(' expression ')'
+    	-> expression
     ;
 
 conditionalExpr
