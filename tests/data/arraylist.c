@@ -16,9 +16,10 @@ typedef struct arrayList
  */
 ArrayList* createList()
 {
-    ArrayList* result = 0;
-    result = (ArrayList*)malloc(sizeof(ArrayList));
-    if (result)
+    ArrayList* result;
+    result = 0;
+    result = (ArrayList*)malloc(12);
+    if (result != 0)
     {
         result->capacity = 0;
         result->size = 0;
@@ -40,7 +41,7 @@ int initList(ArrayList* list)
     }
     list->size = 0;
     list->capacity = 5;
-    list->data = (ListData*)malloc(sizeof(ListData) * 5);
+    list->data = (ListData*)malloc(20);
     if (list->data != 0)
     {
         return 0;
@@ -71,7 +72,7 @@ void releaseList(ArrayList* list)
  */
 void deleteList(ArrayList* list)
 {
-    if (list)
+    if (list != 0)
     {
         releaseList(list);
         free(list);
@@ -96,11 +97,16 @@ ListData getDataFromList(ArrayList* list, int index)
  */
 int expandListToCapacity(ArrayList* list, int target)
 {
-    ListData* tmp = 0;
-    tmp = (ListData*)malloc(sizeof(ListData) * target);
-    if (tmp)
+    ListData* tmp;
+    int t;
+    int tt;
+    tmp = 0;
+    t = 4 * target;
+    tt = 4 * list->size;
+    tmp = (ListData*)malloc(t);
+    if (tmp != 0)
     {
-        memcpy(tmp, list->data, sizeof(ListData) * list->size);
+        memcpy(tmp, list->data, tt);
         free(list->data);
         list->data = tmp;
         list->capacity = target;
@@ -116,7 +122,11 @@ int expandListToCapacity(ArrayList* list, int target)
  */
 int expandList(ArrayList* list)
 {
-    int target = 0, delta = list->capacity;
+    int target;
+    int delta;
+    int t;
+    delta = list->capacity;
+    target = 0;
     while (1)
     {
         if (delta <= 0) {
@@ -124,16 +134,17 @@ int expandList(ArrayList* list)
         }
         target = list->capacity + delta;
         if (target < 0) {
-            delta >>= 1;
+            delta = delta / 2;
             continue;
         }
-        if (expandListToCapacity(list, target))
+        t = expandListToCapacity(list, target);
+        if (t == 1)
         {
             return delta;
         }
         else
         {
-            delta >>= 1;
+            delta = delta / 2;
             continue;
         }
     }
@@ -149,17 +160,6 @@ int expandList(ArrayList* list)
 int insertToList(ArrayList* list, ListData val, int index)
 {
     int i;
-    if ((index > list->size) || (index < 0))
-    {
-        return -2;  // -2: index超出范围
-    }
-    if (list->size >= list->capacity)
-    {
-        if (!expandList(list))
-        {
-            return -1;  // -1: 内存空间不足。
-        }
-    }
     for (i = list->size; i > index; --i)
     {
         list->data[i] = list->data[i - 1];
@@ -178,10 +178,6 @@ int insertToList(ArrayList* list, ListData val, int index)
 int removeFromListByIndex(ArrayList* list, int index)
 {
     int i;
-    if ((index >= list->size) || (index < 0))
-    {
-        return -2;  // -2: index超出范围
-    }
     for (i = index; i < list->size - 1; ++i)
     {
         list->data[i] = list->data[i + 1];
@@ -217,53 +213,9 @@ int getIndexFromList(ArrayList* list, ListData val)
  */
 int removeFromListByValue(ArrayList* list, ListData val)
 {
-    return removeFromListByIndex(list, getIndexFromList(list, val));
-}
-
-/*
- 合并两个ArrayList。将src合并到dest。
- \param dest
- \param src
- \return dest
- */
-ArrayList* combineList(ArrayList* dest, ArrayList* src)
-{
-    int target;
-    target = dest->size + src->size;
-    if (dest->capacity < target)
-    {
-        expandListToCapacity(dest, target);
-    }
-    memcpy(&(dest->data[dest->size]), src->data, sizeof(ListData) * src->size);
-    dest->size += src->size;
-    return dest;
-}
-
-/*
- 给ArrayList排序（快排）。
- \param list 待排序的Array
- \param l 排序区间的起始位置
- \param r 排序区间的终止位置
- \return 排好序的ArrayList
- */
-ArrayList* sortList(ArrayList* list, int l, int r)
-{
-    int i, j;
-    ListData t, m;
-    i = l; j = r; m = list->data[(l + r) >> 1];
-    do
-    {
-        while (list->data[i] < m) ++i;
-        while (list->data[j] > m) --j;
-        if (i <= j)
-        {
-            t = list->data[i]; list->data[i] = list->data[j]; list->data[j] = t;
-            ++i; --j;
-        }
-    } while (i <= j);
-    if (l < j) sortList(list, l, j);
-    if (i < r) sortList(list, i, r);
-    return list;
+    int index;
+    index = getIndexFromList(list, val);
+    return removeFromListByIndex(list, index);
 }
 
 /*
@@ -279,38 +231,44 @@ void printLog(char* hint, char* params, int rtn)
  */
 int main()
 {
-    ArrayList* list1, *list2;
-    int i;
+    ArrayList* list1;
+    ArrayList* list2;
+    int t;
     printf("Start test ArrayList.\n\n");
-    printLog("Create an ArrayList.", "<empty>", (int)(list1 = createList()));
-    printLog("Initialize the ArrayList.", "list1.init()", initList(list1));
-    printLog("Create an ArrayList.", "<empty>", (int)(list2 = createList()));
-    printLog("Initialize the ArrayList.", "list2.init()", initList(list2));
-    
-    printLog("Insert to the ArrayList.", "list1[0]=5", insertToList(list1, 5, 0));
-    printLog("Insert to the ArrayList.", "list1[1]=2", insertToList(list1, 2, 1));
-    printLog("Insert to the ArrayList.", "list1[2]=8", insertToList(list1, 8, 2));
-    printLog("Insert to the ArrayList.", "list1[3]=9", insertToList(list1, 9, 3));
-    printLog("Remove from the ArrayList by value", "list1.removeValue(9)", removeFromListByValue(list1, 9));
-    printLog("Insert to the ArrayList.", "list1[3]=0", insertToList(list1, 0, 3));
-    printLog("Insert to the ArrayList.", "list1[4]=6", insertToList(list1, 6, 4));
-    
-    printLog("Insert to the ArrayList.", "list2[0]=7", insertToList(list2, 7, 0));
-    printLog("Insert to the ArrayList.", "list2[0]=0", insertToList(list2, 0, 0));
-    printLog("Insert to the ArrayList.", "list2[0]=9", insertToList(list2, 9, 0));
-    printLog("Insert to the ArrayList.", "list2[0]=2", insertToList(list2, 2, 0));
-    printLog("Insert to the ArrayList.", "list2[0]=4", insertToList(list2, 4, 0));
-    
-    printLog("Combine the two ArrayLists.", "list1.combine(list2)", (int)(combineList(list1, list2)));
-    
-    printLog("Sort the combined ArrayList.", "list1.sort()", (int)(sortList(list1, 0, list1->size - 1)));
-    
-    printf("Sorted list1:");
-    for (i = 0; i < list1->size; ++i)
-    {
-        printf(" %d", list1->data[i]);
-    }
-    printf("\n");
+    list1 = createList();
+    printLog("Create an ArrayList.", "<empty>", 0);
+    t = initList(list1);
+    printLog("Initialize the ArrayList.", "list1.init()", t);
+    list2 = createList();
+    printLog("Create an ArrayList.", "<empty>", 0);
+    t = initList(list2);
+    printLog("Initialize the ArrayList.", "list2.init()", t);
+
+    t = insertToList(list1, 5, 0);
+    printLog("Insert to the ArrayList.", "list1[0]=5", t);
+    t = insertToList(list1, 2, 1);
+    printLog("Insert to the ArrayList.", "list1[1]=2", t);
+    t = insertToList(list1, 8, 2);
+    printLog("Insert to the ArrayList.", "list1[2]=8", t);
+    t = insertToList(list1, 9, 3);
+    printLog("Insert to the ArrayList.", "list1[3]=9", t);
+    t = removeFromListByValue(list1, 9);
+    printLog("Remove from the ArrayList by value", "list1.removeValue(9)", t);
+    t = insertToList(list1, 0, 3);
+    printLog("Insert to the ArrayList.", "list1[3]=0", t);
+    t = insertToList(list1, 6, 4);
+    printLog("Insert to the ArrayList.", "list1[4]=6", t);
+
+    t = insertToList(list2, 7, 0);
+    printLog("Insert to the ArrayList.", "list2[0]=7", t);
+    t = insertToList(list2, 0, 0);
+    printLog("Insert to the ArrayList.", "list2[0]=0", t);
+    t = insertToList(list2, 9, 0);
+    printLog("Insert to the ArrayList.", "list2[0]=9", t);
+    t = insertToList(list2, 2, 0);
+    printLog("Insert to the ArrayList.", "list2[0]=2", t);
+    t = insertToList(list2, 4, 0);
+    printLog("Insert to the ArrayList.", "list2[0]=4", t);
     
     deleteList(list1);
     printLog("Delete the ArrayList.", "list1", 0);
