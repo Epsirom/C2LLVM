@@ -86,7 +86,9 @@ void deleteList(ArrayList* list)
  */
 ListData getDataFromList(ArrayList* list, int index)
 {
-    return list->data[index];
+    ListData rtn;
+    rtn = list->data[index];
+    return rtn;
 }
 
 /*
@@ -135,17 +137,16 @@ int expandList(ArrayList* list)
         target = list->capacity + delta;
         if (target < 0) {
             delta = delta / 2;
-            continue;
-        }
-        t = expandListToCapacity(list, target);
-        if (t == 1)
-        {
-            return delta;
-        }
-        else
-        {
-            delta = delta / 2;
-            continue;
+        } else {
+            t = expandListToCapacity(list, target);
+            if (t == 1)
+            {
+                return delta;
+            }
+            else
+            {
+                delta = delta / 2;
+            }
         }
     }
 }
@@ -214,8 +215,10 @@ int getIndexFromList(ArrayList* list, ListData val)
 int removeFromListByValue(ArrayList* list, ListData val)
 {
     int index;
+    int rtn;
     index = getIndexFromList(list, val);
-    return removeFromListByIndex(list, index);
+    rtn = removeFromListByIndex(list, index);
+    return rtn;
 }
 
 /*
