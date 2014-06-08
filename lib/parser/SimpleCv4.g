@@ -106,6 +106,7 @@ tokens {
     MEMBERVAR;
     ARRAYINDEX;
     
+    CONSTNUM;
     DECLARATOR;
 }
 
@@ -135,7 +136,7 @@ libname
     ;
 
 variable
-    :   type declarator (assignmentOp conditionalExpr)? (',' '*'? declarator (assignmentOp shiftExpr)?)* ';'
+    :   type declarator (assignmentOp shiftExpr)? (',' '*'? declarator (assignmentOp shiftExpr)?)* ';'
     	-> ^(VAR_DEF type (^(VAR_NAME declarator) ^(DEFAULT_VALUE shiftExpr)?)+)
     ;
 
@@ -258,8 +259,8 @@ jumpStat
     ->	^(JUMP_STAT JUMP_CONTINUE)
     |  'break' ';'
     ->	^(JUMP_STAT JUMP_BREAK)
-    |  'return' (expression)? ';'
-    ->	^(JUMP_STAT ^(JUMP_RETURN expression)?)
+    |  'return' (primaryExpr)? ';'
+    ->	^(JUMP_STAT ^(JUMP_RETURN primaryExpr)?)
     ;
   
 funcInvoke
@@ -323,7 +324,6 @@ unaryOp
 
 postfixExpr
     :   primaryExpr (postfix)*   
-    ->	^(POSTFIX_EXPR primaryExpr ^(POSTFIX postfix)*)
     ; 
 
 postfix
@@ -341,6 +341,7 @@ primaryExpr
     :   declarator
         -> ^(DECLARATOR declarator)
     |	INT
+    	-> ^(CONSTNUM INT)
     |   STRING
     |   '(' expression ')'
     ;
@@ -351,18 +352,15 @@ conditionalExpr
     ; 
 
 logicalOrExpr
-    : logicalAndExpr ('||' logicalAndExpr)*
-    -> ^(OR_EXPR ^(OR_BRANCH logicalAndExpr)+)
+    : logicalAndExpr ('||'^ logicalAndExpr)*
     ;
 
 logicalAndExpr
-    : relationExpr ('&&' relationExpr)*
-    -> ^(AND_EXPR ^(AND_BRANCH relationExpr)+)
+    : relationExpr ('&&'^ relationExpr)*
     ;
 
 relationExpr
-    : shiftExpr (relationOp shiftExpr)*
-    -> ^(RELATION_EXPR shiftExpr (relationOp shiftExpr)*)
+    : shiftExpr (relationOp^ shiftExpr)*
     ;
     
 relationOp
@@ -381,8 +379,7 @@ relationOp
     ;
 
 shiftExpr
-    :   addSubExpr (shiftOp addSubExpr)*
-    ->	^(SHIFT_EXPR addSubExpr ^(shiftOp addSubExpr)*)
+    :   addSubExpr (shiftOp^ addSubExpr)*
     ;
 shiftOp
     :	'<<'
@@ -392,8 +389,7 @@ shiftOp
     ;
 
 addSubExpr
-    :   multDivExpr (addSubOp multDivExpr)*
-    ->	^(ADDSUB_EXPR multDivExpr ^(addSubOp multDivExpr)*)
+    :   multDivExpr (addSubOp^ multDivExpr)*
     ;
 addSubOp
     :	'+'
@@ -403,8 +399,7 @@ addSubOp
     ;
 
 multDivExpr
-    :   castExpr (multDivOp castExpr)*
-    ->	^(MULTDIV_EXPR castExpr ^(multDivOp castExpr)*)
+    :   castExpr (multDivOp^ castExpr)*
     ;
 
 multDivOp
