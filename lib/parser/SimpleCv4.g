@@ -111,6 +111,8 @@ tokens {
     
     ASSIGNMENT_LEFT;
     ASSIGNMENT_RIGHT;
+    
+    VARIABLE;
 }
 
 program
@@ -326,7 +328,8 @@ unaryOp
     ;
 
 postfixExpr
-    :   primaryExpr (postfix)*   
+    :   primaryExpr (postfix)*
+    	-> ^(VARIABLE primaryExpr (postfix)*)
     ; 
 
 postfix
