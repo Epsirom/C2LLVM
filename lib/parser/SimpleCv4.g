@@ -253,8 +253,8 @@ whileStat
     ;
 
 ifStat
-    :   'if' '(' conditionalExpr ')' block ( 'else' 'if' '(' conditionalExpr ')' block )* ( 'else' block )?
-    ->	^(IF_STAT ^(IF_BRANCH conditionalExpr block) ^(ELSEIF_BRANCH conditionalExpr block)* ^(ELSE_BRANCH block)?)
+    :   'if' '(' conditionalExpr ')' block  ( 'else' block )?
+    ->	^(IF_STAT ^(IF_BRANCH conditionalExpr block) ^(ELSE_BRANCH block)?)
     ;
 
 jumpStat
