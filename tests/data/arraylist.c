@@ -149,6 +149,7 @@ int expandList(ArrayList* list)
             }
         }
     }
+    return 0;
 }
 
 /*
@@ -166,7 +167,7 @@ int insertToList(ArrayList* list, ListData val, int index)
         list->data[i] = list->data[i - 1];
     }
     list->data[index] = val;
-    ++(list->size);
+    ++list->size;
     return 0;
 }
 
@@ -222,6 +223,38 @@ int removeFromListByValue(ArrayList* list, ListData val)
 }
 
 /*
+ 给ArrayList排序（快排）。
+ \param list 待排序的Array
+ \param l 排序区间的起始位置
+ \param r 排序区间的终止位置
+ \return 排好序的ArrayList
+ */
+ArrayList* sortList(ArrayList* list, int l, int r)
+{
+    int i;
+    int j;
+    int tt;
+    ListData t;
+    ListData m;
+    tt = l + r;
+    tt = tt / 2;
+    i = l; j = r; m = list->data[tt];
+    while (i <= j)
+    {
+        while (list->data[i] < m) ++i;
+        while (list->data[j] > m) --j;
+        if (i <= j)
+        {
+            t = list->data[i]; list->data[i] = list->data[j]; list->data[j] = t;
+            ++i; --j;
+        }
+    }
+    if (l < j) sortList(list, l, j);
+    if (i < r) sortList(list, i, r);
+    return list;
+}
+
+/*
  日志化输出。
  */
 void printLog(char* hint, char* params, int rtn)
@@ -237,6 +270,7 @@ int main()
     ArrayList* list1;
     ArrayList* list2;
     int t;
+    int i;
     printf("Start test ArrayList.\n\n");
     list1 = createList();
     printLog("Create an ArrayList.", "<empty>", (int)list1);
@@ -258,7 +292,18 @@ int main()
     printLog("Insert to the ArrayList.", "list2[0]=9", insertToList(list2, 9, 0));
     printLog("Insert to the ArrayList.", "list2[0]=2", insertToList(list2, 2, 0));
     printLog("Insert to the ArrayList.", "list2[0]=4", insertToList(list2, 4, 0));
-    
+
+    t = list1->size - 1;
+    sortList(list1, 0, t);
+    printLog("Sort the combined ArrayList.", "list1.sort()", (int)list1);
+
+    printf("Sorted list1:");
+    for (i = 0; i < list1->size; ++i)
+    {
+        printf(" %d", list1->data[i]);
+    }
+    printf("\n\n");
+
     deleteList(list1);
     printLog("Delete the ArrayList.", "list1", 0);
     deleteList(list2);
