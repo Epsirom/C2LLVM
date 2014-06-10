@@ -260,9 +260,41 @@
     \subsection{词法、语法分析}
 
     \subsubsection{Antlr工具}
+    词法分析器(Lexer)的工作是分析量化那些本来毫无意义的字符流，将他们翻译成一个一个的Token，包括关键字、标识符、符号和操作符供语法分析器使用。语法分析器(Parser)关注Token 的语法意义及其余上下文的关系。它将收到的Tokens组织起来，并转换成目标语言语法定义所允许的序列。我们的词法分析和语法分析是利用ANTLR工具完成的，ANTLR将词法分析器和语法分析器结合起来，它允许我们定义识别字符流的词法规则和用于解释Token流的词法分析规则。然后，ANTLR将根据用户提供的语法文件自动生成相应的词法/语法分析器。用户可以利用他们将输入的文本进行编译，转换成其他形式。
+    \par 由于我们的开发语言是Node.js，所以我们使用的ANTLR版本是antlr-3.3.jar，它可以支持生成js 版本的词法分析和语法分析文件，较低版本的ANTLR 不支持生成js语言的词法语法分析器。另外我们使用antlrworks-1.4.3.jar工具来对语法文件进行调试。在编写好语法文件SimpleCv4.g后，在该文件中的option设置language=Javascript，然后通过以下命令生成词法分析器和语法分析器：
+    \begin{verbatim}
+    java -cp antlr-3.3.jar org.antlr.Tool SimpleCv4.g
+    \end{verbatim}
+    \par 通过上面的命令可以得到SimpleCv4.tokens，SimpleCv4Lexer.js和SimpleCv4Parser.js 三个文件，为了让lexer和parser文件可以被其它文件引用，需要在这两个文件中分别加入module.exports语句。 Node.js 要调用这几个文件需要依赖ANTLR3 的javascript runtime 库。我们已经在package.json中配置好，只需在根目录下执行auto\_install则可自动安装这个库。安装好antlr3的库后，就可以用js代码调用lexer和parser文件分析c代码文件了。
+    \subsubsection{语法设计}
+    设计语法文件是词法、语法分析的关键，我们针对c语言的特性自己设计了语法文件。
+    \par SimpleCv4.g识别以下词法：ID(字母组成的标识符)、 INT(整数)、FLOAT(浮点数)、WS(空白符)、CHINESECHAR(中文字符)、STRING(字符串)、MULTILINE\_COMMENT(多行注释)、SINGLELINE\_COMMENT(单行注释)。其中遇到WS,MULTILINE\_COMMENT,SINGLELINE\_COMMENT，分析器将其放到HIDDEN频道中自动忽略。
+    \par SimpleCv4.g涵盖了c语言的基本语法规则，包括: include文件，结构体定义，函数声明，函数定义，函数调用，for 循环，if 条件，while 循环，跳转语句，赋值，条件运算（或运算，与运算，关系运算），算术运算（加减法，乘除法，移位运算），一元运算，强制类型转换，后缀表达式。
 
     \subsubsection{抽象语法分析树AST}
+    生成目标代码有两种方式，一种是直接在语法文件中嵌入处理代码，另一种是将语法识别与转换、生成（目标代码）等处理分离，先用词法分析器和语法分析器对输入的字符流进行分析得到抽象语法树AST，再编写一个转换器使用AST作为输入，进行分析处理，生成目标代码等操作。由于生成LLVM 代码的过程比较复杂，所以我们没有直接在语法文件中嵌入代码，而是选择遍历语法树生成目标代码。
+    \par 要构造AST首先需要在语法文件中使用全局option设置output=AST，ANTLR生成的识别器中每个方法都返回一个AST节点或节点集合，起始规则返回的是所有匹配到的AST节点的集合。为了使识别器（Lexer+Parser）返回AST树，需要在语法文件中使用AST构造，告诉ANTLR在语法识别时如何构造树结构。
 
+    \par $\rightarrow$为AST构造规则，左边是规则表达式(产生式)，右边是AST树的构造规则。例如:
+    \begin{verbatim}
+    functionHeader
+    :   type ID '(' ( formalParameter ( ',' formalParameter )* )? ')'
+    	-> ^(FUNC_HEADER type ^(FUNC_NAME ID) formalParameter*)
+    \end{verbatim}
+    \par 右边括号里面第一个元素是操作符，将作为树的根节点，其它元素为操作数，作为树的子节点。如果$\rightarrow$右边为空，表示不构造AST节点；右边只有一个表达式，表示只构造一个AST 节点，而不是AST树，例如assignmentOp: '=' $\rightarrow$ ASSIGN。
+    \par 举个简单的例子，将以下的几句简单的C语言代码转化成AST为：
+    \begin{verbatim}
+    ArrayList* createList()
+    {
+        ArrayList* result;
+        result = (ArrayList*)malloc(12);
+        return result;
+    }
+    \end{verbatim}
+    \begin{center}
+    \includegraphics[width=6in]{ASTdemo.png}
+    \end{center}
+    
     \subsection{语法及语义检查}
     \subsubsection{实现概况}
     这部分应该遍历AST进行相应的检查，至少应包括变量、函数、类型等在内的不同标识符的作用域检查、函数参数列表检查等。考虑到每一种标识符的检查都是复杂繁琐的，由于时间有限，我们只对变量进行了作用域检查，其他的语法语义大同小异。
@@ -395,21 +427,62 @@ not found: ParamName
 
 
 
-    \subsubsection{目前支持的LLVM语言特性}
+    \subsubsection{目前支持的C语言特性}
+    \begin{enumerate}
+        \item 数据类型与变量
+        \begin{enumerate}
+            \item 支持结构体、数组、指针等；
+            \item 但不支持指针的指针；
+            \item 结构体成员也支持数组、指针等；
+            \item 支持字符串常量；
+            \item 支持整型常量；
+            \item 支持局部变量（即非全局变量，也就是有一定作用域的变量）。
+        \end{enumerate}
+        
+        \item 类型转换
+        \begin{enumerate}
+            \item 支持显式类型转换、隐式类型转换；
+            \item 支持特殊的指针转整型：ptrtoint；
+            \item 支持typedef。
+        \end{enumerate}
+        
+        \item 函数
+        \begin{enumerate}
+            \item 支持函数定义、调用；
+            \item 支持无返回值（void）的函数；
+            \item 支持printf、malloc、free、memcpy等系统函数；
+            \item 自动进行隐式类型转换。
+        \end{enumerate}
+        
+        \item 运算
+        \begin{enumerate}
+            \item 赋值（会进行隐式类型转换）；
+            \item 支持加减乘除等常用算术运算；
+            \item 自增（++）、自减（--）；
+            \item 支持常用逻辑运算。
+        \end{enumerate}
+
+        \item 选择语句
+        \begin{enumerate}
+            \item 支持；
+            \item 还支持选择语句的嵌套（形如if...else{if...else...}）。
+        \end{enumerate}
+
+        \item 循环语句：支持for和while。
+    \end{enumerate}
 
     \subsection{自动化测试}
     \subsubsection{实现概况}
-    完成了一个自动化测试实例BibJS/tests/test-bib.js，运行方法见\ref{sec:abouttest}。该测试中会依照实验要求将example.bib读入，然后将解析结果输出至result.txt。这两个文件都放在BibJS/tests/data目录下。
+    完成了一个自动化测试实例C2LLVM/tests/test-main.js，运行方法见\ref{sec:abouttest}。 该测试中会读入arraylist.c文件，然后将目标代码输出至result.ll。这两个文件都放在C2LLVM/tests/data 目录下。
 
     \subsubsection{自动化测试步骤}
-    在该自动化测试中，先从文件中读取输入字符串，然后用它构建BibDad对象，接着不断调用该对象analyze方法，若该方法返回true，说明解析成功，就进行validate，如果仍通过validate就调用output将结果输出到文件。
-    \par 若analyze返回false，说明解析失败，判断此时是完成了解析还是解析过程中出错，如果是解析过程中出错，就打印错误信息（会打印出在输入串的第几个字节解析出错，并打印该字节附近以15字节为半径的字符串，空白符会全部替换为空格），错误信息的显示效果还算不错。
+    在该自动化测试程序中，将语法文件名“SimpleCv4”作为参数创建一个C2LLVM编译器对象compiler，然后将测试文件的路径作为参数调用compiler的compile函数对此测试文件进行处理，返回值为目标代码的字符流result，最后将字符流result写到result.ll文件中，自动化测试结束。
 
     \section{实验结果}
     本实验提供的arraylist.c的解析结果见result.ll。
     \par arraylist.c中定义了结构体ArrayList，实现了创建、释放、扩增容量、插入数据、删除数据（两种方式：根据索引、根据值）、排序、功能测试等函数。在其中频繁进行选择判断、循环、函数调用等，其复杂性基本能说明我们的编译器已经对较复杂C语言程序有不错的支持。但其中有些地方仍按照奇怪的方式来书写，比如为了避免类似\lstinline{char *a, *b, c;}这样语句造成的处理难度，我们的编译器只支持\lstinline{char *a; char *b; char c;}这样的方式来定义变量。
     \par 值得一提的是，clang的编译结果（tests/data/arraylist.ll）为33KB，809行；而我们的编译结果（result.ll）为27KB，707行。实际上我们的编译器不会处理相同的字符串，而clang是处理了的，如果我们再加上处理相同字符串的功能，编译结果将能进一步缩减尺寸。
-    \par 将result.ll在Linux环境下，用\lstinline[language=sh]{clang -o result result.ll}将其编译为二进制文件，然后执行\lstinline[language=sh]{./result}，输出结果如下。这与clang直接编译arraylist.c的结果表现一致。可以看到各个功能都被正确地执行了，特别是排序，涉及比较复杂的过程，这些正确的结果有理由让我们相信我们的编译结果是正确的。
+    \par 将result.ll在Linux环境下，用\lstinline[language=sh]{clang -o result result.ll} 将其编译为二进制文件，然后执行\lstinline[language=sh]{./result}，输出结果如下。这与clang直接编译arraylist.c的结果表现一致。可以看到各个功能都被正确地执行了，特别是排序，涉及比较复杂的过程，这些正确的结果有理由让我们相信我们的编译结果是正确的。
     \begin{verbatim}
 Start test ArrayList.
 

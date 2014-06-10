@@ -30,3 +30,4 @@ node_modules
 docs/*
 !docs/*.tex
 !docs/*.sty
+!docs/*.png
