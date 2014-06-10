@@ -94,7 +94,7 @@
 %------------------------------------------------------------------%
 
 % 自己定义新命令，参数依次是
-% \newcommand{新命令名称（带反斜线）}[参数个数（最多9个）]{命令定义}
+% \newcommand{新命令名称（带反斜线）}[参数个数（最多9 个）]{命令定义}
 % 实际上相当于宏替换
 % \newcommand{\sayhelloto}[1]{hello,#1}
 \newcommand{\template}[3] {
@@ -177,12 +177,12 @@
                 }
                 child [missing] {}
                 child { node [optional] {generator $|$ 目标代码生成器}
-                    child { node {LLVM.js $|$ 生成LLVM代码}}
+                    child { node {LLVM.js $|$ 生成LLVM 代码}}
                 }
                 child [missing] {}
                 child { node {antlr-3.3.jar $|$ ANTLR分析工具}}
                 child { node {errmgr.js $|$ 错误管理器，保存错误信息，格式化输出}}
-                child { node {compiler.js $|$ Compiler类}}
+                child { node {compiler.js $|$ Compiler 类}}
             }
             child [missing] {}
             child [missing] {}
@@ -249,19 +249,19 @@
     \par 如果在安装了npm的机器上进行测试，可以直接在C2LLVM目录下运行\lstinline[language=sh]{npm test}，将以./tests/data/arraylist.c为输入，处理结果将输出到./tests/data/result.ll（该文件的副本已经提供在提交目录的根目录中）。
     \par 如果在未安装npm的机器上进行测试，请以C2LLVM目录为工作目录运行./tests/test-main.js，即在./source/C2LLVM目录下运行\lstinline{node ./tests/test-main.js}。
     \par 运行测试程序，会将调试信息输出在命令行，而输出到result.ll的则不带调试信息只保留有效的解析结果。
-    \par 在安装有clang的Linux机器上，可以通过\lstinline[language=sh]{clang -o result result.ll}来进行编译，然后通过\lstinline[language=sh]{./result}来运行。
+    \par 在安装有clang的Linux机器上，可以通过\lstinline[language=sh]{clang -o result result.ll}来进行编译，然后通过\lstinline[language=sh]{./result} 来运行。
 
     \section{实验分析}
     \subsection{整体思路}
     我们将实验分为三个部分：第一部分借助ANTLR和手动编写的语法文件进行词法语法分析并构建语法分析树AST；第二部分通过手动遍历AST的方式进行语法及语义检查；第三部分仍是通过手动遍历AST的方式进行目标代码生成。
-    \par 实际上借助于ANTLR工具和手动的编码能完成以上三部分的全部工作，但后两部分我们仍决定通过手动遍历AST的方式来实现，以此减少最终代码量，希望能提高效率。
+    \par 实际上借助于ANTLR工具和手动的编码能完成以上三部分的全部工作，但后两部分我们仍决定通过手动遍历AST 的方式来实现，以此减少最终代码量，希望能提高效率。
     \par 我们的编译器支持大量语法特性，依照要求本应针对每个特性写一个测试程序，但为简单起见，我们只提供了arraylist.c这一测试程序，它对应的是实验要求中输入程序c，也就是array-list。在arraylist.c中不仅涵盖实验要求中的类（考虑C语言的特性，用结构体来替代）、成员变量、成员函数（考虑C语言的特性，用包含结构体变量作为参数的全局函数来替代）、动态内存分配等，还包括类型定义、动态内存释放、内存段拷贝、数组、显式类型转换、隐式类型转换、递归、多种循环体等在内的大量语法特性，基本能说明我们的编译器拥有较好的编译能力。
 
     \subsection{词法、语法分析}
 
     \subsubsection{Antlr工具}
     词法分析器(Lexer)的工作是分析量化那些本来毫无意义的字符流，将他们翻译成一个一个的Token，包括关键字、标识符、符号和操作符供语法分析器使用。语法分析器(Parser)关注Token 的语法意义及其余上下文的关系。它将收到的Tokens组织起来，并转换成目标语言语法定义所允许的序列。我们的词法分析和语法分析是利用ANTLR工具完成的，ANTLR将词法分析器和语法分析器结合起来，它允许我们定义识别字符流的词法规则和用于解释Token流的词法分析规则。然后，ANTLR将根据用户提供的语法文件自动生成相应的词法/语法分析器。用户可以利用他们将输入的文本进行编译，转换成其他形式。
-    \par 由于我们的开发语言是Node.js，所以我们使用的ANTLR版本是antlr-3.3.jar，它可以支持生成js 版本的词法分析和语法分析文件，较低版本的ANTLR 不支持生成js语言的词法语法分析器。另外我们使用antlrworks-1.4.3.jar工具来对语法文件进行调试。在编写好语法文件SimpleCv4.g后，在该文件中的option设置language=Javascript，然后通过以下命令生成词法分析器和语法分析器：
+    \par 由于我们的开发语言是Node.js，所以我们使用的ANTLR版本是antlr-3.3.jar，它可以支持生成js 版本的词法分析和语法分析文件，较低版本的ANTLR 不支持生成js 语言的词法语法分析器。另外我们使用antlrworks-1.4.3.jar工具来对语法文件进行调试。在编写好语法文件SimpleCv4.g后，在该文件中的option设置language=Javascript，然后通过以下命令生成词法分析器和语法分析器：
     \begin{verbatim}
     java -cp antlr-3.3.jar org.antlr.Tool SimpleCv4.g
     \end{verbatim}
@@ -273,7 +273,7 @@
 
     \subsubsection{抽象语法分析树AST}
     生成目标代码有两种方式，一种是直接在语法文件中嵌入处理代码，另一种是将语法识别与转换、生成（目标代码）等处理分离，先用词法分析器和语法分析器对输入的字符流进行分析得到抽象语法树AST，再编写一个转换器使用AST作为输入，进行分析处理，生成目标代码等操作。由于生成LLVM 代码的过程比较复杂，所以我们没有直接在语法文件中嵌入代码，而是选择遍历语法树生成目标代码。
-    \par 要构造AST首先需要在语法文件中使用全局option设置output=AST，ANTLR生成的识别器中每个方法都返回一个AST节点或节点集合，起始规则返回的是所有匹配到的AST节点的集合。为了使识别器（Lexer+Parser）返回AST树，需要在语法文件中使用AST构造，告诉ANTLR在语法识别时如何构造树结构。
+    \par 要构造AST首先需要在语法文件中使用全局option设置output=AST，ANTLR生成的识别器中每个方法都返回一个AST节点或节点集合，起始规则返回的是所有匹配到的AST 节点的集合。为了使识别器（Lexer+Parser）返回AST树，需要在语法文件中使用AST构造，告诉ANTLR在语法识别时如何构造树结构。
 
     \par $\rightarrow$为AST构造规则，左边是规则表达式(产生式)，右边是AST树的构造规则。例如:
     \begin{verbatim}
@@ -294,7 +294,7 @@
     \begin{center}
     \includegraphics[width=6in]{ASTdemo.png}
     \end{center}
-    
+
     \subsection{语法及语义检查}
     \subsubsection{实现概况}
     这部分应该遍历AST进行相应的检查，至少应包括变量、函数、类型等在内的不同标识符的作用域检查、函数参数列表检查等。考虑到每一种标识符的检查都是复杂繁琐的，由于时间有限，我们只对变量进行了作用域检查，其他的语法语义大同小异。
@@ -319,8 +319,11 @@ not found: ParamName
     \par 经过努力，我们支持了在编译过程中保持大量语言特性，甚至已经拥有编译稍微复杂的C语言程序的能力。
 
     \subsubsection{自顶向下基于模板的目标代码生成}
+    \begin{center}
+    \includegraphics[width=6in]{param.png}
+    \end{center}
     
-    在LLVMGenerator中维护的变量有data, paramlv, pmapcount, body, labelcount, currentFunc。其中data是一个js对象，data.types中存储着基本变量类型和自定义变量类型，data.target中存储着编译完成后llvm运行的目标环境，data.struct中定义了自定义结构体的结构体名称、结构体各个成员变量的变量名、序号（不同于c语言，llvm在调用结构体成员变量时用序号而不是变量名调用）、类型以及是否为指针类型，data.funcs中定义了函数体的函数名称、返回值类型以及是否是为指针类型、函数各个参数的参数名、序号、类型以及是否为指针类型。
+    在LLVMGenerator中维护的变量有data, paramlv, pmapcount, body, labelcount, currentFunc。其中data 是一个js对象，data.types中存储着基本变量类型和自定义变量类型，data.target中存储着编译完成后llvm运行的目标环境，data.struct中定义了自定义结构体的结构体名称、结构体各个成员变量的变量名、序号（不同于c语言，llvm在调用结构体成员变量时用序号而不是变量名调用）、类型以及是否为指针类型，data.funcs中定义了函数体的函数名称、返回值类型以及是否是为指针类型、函数各个参数的参数名、序号、类型以及是否为指针类型。
 	\par data.params中存储中当前作用域中的所有变量，包括各个变量的在c代码中的变量名、类型、是否为指针类型、作用域等级、在llvm代码中的变量名。data.pmap则存储着llvm的变量表，以在llvm代码中的变量名作为key，而value则是该变量的在params表中对应的名字。llvm中没有直接对应的字符串类型，故而data.cstr中存储着代码中所有的字符常量。
 
 	\par paramlv标识C语言中不同作用域的作用域等级，标识方法同变量作用域检查。全局作用域的作用域等级为1，每进入一个函数或一个BLOCK 作用域（也就是大括号限定的作用域），作用域等级+1；每完成一个函数或BLOCK，释放该作用域的所有变量并恢复作用域等级。
@@ -387,7 +390,7 @@ not found: ParamName
                 child { node [optional] {handlePREFIX\_MINUS}}
                 child { node [optional] {handleFUNC\_INVOKE}}
                 child { node [optional] {loadVARIABLE}}
-                child { node [optional] {handleCASTTYPE}}    
+                child { node [optional] {handleCASTTYPE}}
             }
             child [missing] {}
             child [missing] {}
@@ -395,7 +398,7 @@ not found: ParamName
             child [missing] {}
             child [missing] {}
             child { node [optional] {handleJUMPSTAT $|$ 处理JUMP\_STAT记号}
-                child { node [optional] {handleJUMP\_RETURN}}            
+                child { node [optional] {handleJUMP\_RETURN}}
             }
         }
         child [missing] {}
@@ -438,22 +441,22 @@ not found: ParamName
             \item 支持整型常量；
             \item 支持局部变量（即非全局变量，也就是有一定作用域的变量）。
         \end{enumerate}
-        
+
         \item 类型转换
         \begin{enumerate}
             \item 支持显式类型转换、隐式类型转换；
             \item 支持特殊的指针转整型：ptrtoint；
             \item 支持typedef。
         \end{enumerate}
-        
+
         \item 函数
         \begin{enumerate}
             \item 支持函数定义、调用；
             \item 支持无返回值（void）的函数；
-            \item 支持printf、malloc、free、memcpy等系统函数；
+            \item 支持printf、malloc、free、memcpy 等系统函数；
             \item 自动进行隐式类型转换。
         \end{enumerate}
-        
+
         \item 运算
         \begin{enumerate}
             \item 赋值（会进行隐式类型转换）；
