@@ -27,14 +27,14 @@
 \usepackage{algpseudocode}% an improvement from algorithmicx for algorithmic
 
 \usepackage{setspace}
- 
+
 \usepackage[utf8]{inputenc}
 
 
 \usepackage{xspace}
 
 %======= XXX 要编译两遍才能有标签和引用等效果 =====%
- 
+
 \usepackage[top=2.54cm,bottom=2.54cm,left=3.17cm,right=3.17cm]{geometry} % a4paper standard
 \usepackage[unicode=true]{hyperref} %注意这里不能加CJKbookmarks=true，否则会乱码
 \usetikzlibrary{arrows,decorations.pathmorphing,backgrounds,positioning,fit,automata,trees}
@@ -52,10 +52,10 @@
     %bookmarksopen=true,
 }
 %------------------------------------------------------------------%
- 
+
 \setcounter{secnumdepth}{5} % 编号的深度，4 表示到 paragraph 一级
 %\setcounter{tocdepth}{4} % 目录中的深度
- 
+
 %------------------------------------------------------------------%
 \usepackage{color}
 \definecolor{lightgray}{rgb}{.9,.9,.9}
@@ -92,7 +92,7 @@
 
 
 %------------------------------------------------------------------%
- 
+
 % 自己定义新命令，参数依次是
 % \newcommand{新命令名称（带反斜线）}[参数个数（最多9个）]{命令定义}
 % 实际上相当于宏替换
@@ -100,17 +100,17 @@
 \newcommand{\template}[3] {
     \item \textbf{#1}
     \begin{enumerate}
-        \item[\textbf{#2}] #3 
+        \item[\textbf{#2}] #3
     \end{enumerate}
 }
 \newcommand{\jie}[2]{\template{#1}{解}{#2}}
 \newcommand{\zheng}[2]{\template{#1}{证明}{#2}}
- 
+
 %------------------------------------------------------------------%
- 
+
 % 放在导言区，设置全局行距
 \linespread{1.6}
- 
+
 % 放在导言区，公式编号和章节相关
 %\makeatletter % `@' now normal ``letter''
 %\@addtoreset{equation}{section}
@@ -124,22 +124,22 @@
 \begin{CJK*}{UTF8}{gbsn}
     \CJKindent
     \setlength{\parindent}{2em} % no indent
- 
+
     \pagestyle{fancy}
-  
+
     %\begin{center}
     %\Huge{title}
     %\vspace{25pt} % 25pt between title and text
     %\end{center}
-    \title{\huge{计算机与网络体系结构（2）}\\\Large{编译原理}\\{\large 简单编译器的实现：将C语言编译为LLVM}}
+    \title{\huge{计算机与网络体系结构(2)}\\\Large{编译原理}\\{\large 简单编译器的实现：将C语言编译为LLVM}}
     \author{
-    软件11\hspace{10pt}陈　璐\hspace{10pt}2011013249\\
+    软件11\hspace{10pt}陈华榕\hspace{10pt}2011013236\\
     软件12\hspace{10pt}王肖佑\hspace{10pt}2011013273\\
-    软件11\hspace{10pt}陈华榕\hspace{10pt}2011013236
+    软件11\hspace{10pt}陈　璐\hspace{10pt}2011013249
     }
     \date{\today}
     \maketitle
-    \tableofcontents    
+    \tableofcontents
     \newpage
 
     \section{实验背景}
@@ -287,6 +287,113 @@ not found: ParamName
     \par 经过努力，我们支持了在编译过程中保持大量语言特性，甚至已经拥有编译稍微复杂的C语言程序的能力。
 
     \subsubsection{自顶向下基于模板的目标代码生成}
+    
+    在LLVMGenerator中维护的变量有data, paramlv, pmapcount, body, labelcount, currentFunc。其中data是一个js对象，data.types中存储着基本变量类型和自定义变量类型，data.target中存储着编译完成后llvm运行的目标环境，data.struct中定义了自定义结构体的结构体名称、结构体各个成员变量的变量名、序号（不同于c语言，llvm在调用结构体成员变量时用序号而不是变量名调用）、类型以及是否为指针类型，data.funcs中定义了函数体的函数名称、返回值类型以及是否是为指针类型、函数各个参数的参数名、序号、类型以及是否为指针类型。
+	\par data.params中存储中当前作用域中的所有变量，包括各个变量的在c代码中的变量名、类型、是否为指针类型、作用域等级、在llvm代码中的变量名。data.pmap则存储着llvm的变量表，以在llvm代码中的变量名作为key，而value则是该变量的在params表中对应的名字。llvm中没有直接对应的字符串类型，故而data.cstr中存储着代码中所有的字符常量。
+
+	\par paramlv标识C语言中不同作用域的作用域等级，标识方法同变量作用域检查。全局作用域的作用域等级为1，每进入一个函数或一个BLOCK 作用域（也就是大括号限定的作用域），作用域等级+1；每完成一个函数或BLOCK，释放该作用域的所有变量并恢复作用域等级。
+	\par 鉴于llvm代码比较底层，很多c代码中可以一步完成的操作在llvm代码中会增加很多中间过程，而一些临时变量会用”\%+数字”表示，pmapcount的作用就是标识临时变量的编号，依次加1，使之不发生冲突。同样labelcount的作用是对if、while、for循环的label编号进行标识，使之在跳转的时候能找到唯一的编号。currentFunc的作用在函数调用的时候模拟栈，在调用函数的时候进行push操作，在函数返回的时候进行pop操作，以此达到正确实现函数间跳转、正确找到函数返回位置的label以及函数间嵌套调用的目的。body中存储着生成的llvm代码，在遍历AST时调用this.body.push(str)即可逐句写入。
+	\par 在目标代码生成时，通过自顶向下的方式遍历AST对各个文法记号进行解析，并将对应文法结构进行相应的转换，生成相应的llvm代码，写入body字段，大体解析过程如下图所示，具体的生成转换过程可进入相应的handle函数查阅。
+
+{
+\tikzstyle{every node}=[draw=black,thick,anchor=west]
+\tikzstyle{selected}=[draw=red,fill=red!30]
+\tikzstyle{optional}=[fill=gray!30]
+\begin{tikzpicture}[%
+  grow via three points={one child at (0.5,-0.7) and
+  two children at (0.5,-0.7) and (0.5,-1.4)},
+  edge from parent path={(\tikzparentnode.south) |- (\tikzchildnode.west)}]
+  \node [optional] {handlePROG}
+    child { node [optional] {handleINCLUDE $|$ 处理INCLUDE\_SYSTEM记号}
+        child { node {case 'stdlib'}}
+        child { node {case 'stdio'}}
+    }
+    child [missing] {}
+    child [missing] {}
+    child { node [optional] {handleTYPEDEF $|$ 处理TYPE\_DEF记号}
+        child { node {setType}}
+    }
+    child [missing] {}
+    child { node [optional] {handleSTRUCT $|$ 处理STRUCT\_DEF记号}
+        child { node {setStruct}}
+    }
+    child [missing] {}
+    child { node [optional] {handleFUNC $|$ 处理FUNC\_DEF记号}
+        child { node [optional] {handleFUNCHEAD $|$ 处理FUNC\_HEAD记号}
+            child { node {setFunc}}
+            child { node {currentFunc.push}}
+        }
+        child [missing] {}
+        child [missing] {}
+        child { node [optional] {handleBLOCK $|$ 处理BLOCK记号}
+            child { node [optional] {handleVARDEF $|$ 处理VAR\_DEF记号}
+            }
+            child { node [optional] {handleIFSTAT $|$ 处理IF\_STAT记号}
+                child { node [optional] {handleCONDITION}}
+                child { node [optional] {handleBLOCK}}
+            }
+            child [missing] {}
+            child [missing] {}
+            child { node [optional] {handleFORSTAT $|$ 处理FOR\_STAT记号}
+                child { node [optional] {handleASSIGN}}
+                child { node [optional] {handleCONDITION}}
+                child { node [optional] {handleBLOCK}}
+                child { node [optional] {handleASSIGN}}
+            }
+            child [missing] {}
+            child [missing] {}
+            child [missing] {}
+            child [missing] {}
+            child { node [optional] {handleWHILESTAT $|$ 处理WHILE\_STAT记号}
+                child { node [optional] {handleCONDITION}}
+                child { node [optional] {handleBLOCK}}
+            }
+            child [missing] {}
+            child [missing] {}
+            child { node [optional] {handleASSIGN $|$ 处理ASSIGNMENT记号}
+                child { node [optional] {handlePREFIX\_PLUS}}
+                child { node [optional] {handlePREFIX\_MINUS}}
+                child { node [optional] {handleFUNC\_INVOKE}}
+                child { node [optional] {loadVARIABLE}}
+                child { node [optional] {handleCASTTYPE}}    
+            }
+            child [missing] {}
+            child [missing] {}
+            child [missing] {}
+            child [missing] {}
+            child [missing] {}
+            child { node [optional] {handleJUMPSTAT $|$ 处理JUMP\_STAT记号}
+                child { node [optional] {handleJUMP\_RETURN}}            
+            }
+        }
+        child [missing] {}
+        child [missing] {}
+        child [missing] {}
+        child [missing] {}
+        child [missing] {}
+        child [missing] {}
+        child [missing] {}
+        child [missing] {}
+        child [missing] {}
+        child [missing] {}
+        child [missing] {}
+        child [missing] {}
+        child [missing] {}
+        child [missing] {}
+        child [missing] {}
+        child [missing] {}
+        child [missing] {}
+        child [missing] {}
+        child [missing] {}
+        child [missing] {}
+        child { node {currentFunc.pop}
+        }
+    }
+;
+\end{tikzpicture}
+}
+
+
 
     \subsubsection{目前支持的LLVM语言特性}
 
