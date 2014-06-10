@@ -288,7 +288,49 @@ not found: ParamName
 
     \subsubsection{自顶向下基于模板的目标代码生成}
 
-    \subsubsection{目前支持的LLVM语言特性}
+    \subsubsection{目前支持的C语言特性}
+    \begin{enumerate}
+        \item 数据类型与变量
+        \begin{enumerate}
+            \item 支持结构体、数组、指针等；
+            \item 但不支持指针的指针；
+            \item 结构体成员也支持数组、指针等；
+            \item 支持字符串常量；
+            \item 支持整型常量；
+            \item 支持局部变量（即非全局变量，也就是有一定作用域的变量）。
+        \end{enumerate}
+        
+        \item 类型转换
+        \begin{enumerate}
+            \item 支持显式类型转换、隐式类型转换；
+            \item 支持特殊的指针转整型：ptrtoint；
+            \item 支持typedef。
+        \end{enumerate}
+        
+        \item 函数
+        \begin{enumerate}
+            \item 支持函数定义、调用；
+            \item 支持无返回值（void）的函数；
+            \item 支持printf、malloc、free、memcpy等系统函数；
+            \item 自动进行隐式类型转换。
+        \end{enumerate}
+        
+        \item 运算
+        \begin{enumerate}
+            \item 赋值（会进行隐式类型转换）；
+            \item 支持加减乘除等常用算术运算；
+            \item 自增（++）、自减（--）；
+            \item 支持常用逻辑运算。
+        \end{enumerate}
+
+        \item 选择语句
+        \begin{enumerate}
+            \item 支持；
+            \item 还支持选择语句的嵌套（形如if...else{if...else...}）。
+        \end{enumerate}
+
+        \item 循环语句：支持for和while。
+    \end{enumerate}
 
     \subsection{自动化测试}
     \subsubsection{实现概况}
