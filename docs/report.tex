@@ -246,7 +246,7 @@
     \label{sec:abouttest}
     本实验中，通过Node.js完成了一个以C语言为前端语言，LLVM为后端语言的编译库C2LLVM，可作为包供第三方Node.js应用引入。还借助这个库完成了符合实验要求的测试程序。由于所用编程语言是脚本语言，因此不需要提交可执行的版本。
     \par 本次作业提交在了Github上，在作业提交的截止时间前以私有库存在，作业提交截止时间后就修改为公开库，git版本库的地址为：\href{https://github.com/Epsirom/C2LLVM}{https://github.com/Epsirom/C2LLVM}。
-    \par 如果在安装了npm的机器上进行测试，可以直接在C2LLVM目录下运行\lstinline[language=sh]{npm test}，将以./tests/data/arraylist.c为输入，处理结果将输出到./tests/data/result.ll（该文件的副本已经提供在提交目录的根目录中）。
+    \par 如果在安装了npm的机器上进行测试，可以直接在C2LLVM目录下先\lstinline[language=sh]{npm install}，然后运行\lstinline[language=sh]{npm test}，将以./tests/data/arraylist.c为输入，处理结果将输出到./tests/data/result.ll（该文件的副本已经提供在提交目录的根目录中）。
     \par 如果在未安装npm的机器上进行测试，请以C2LLVM目录为工作目录运行./tests/test-main.js，即在./source/C2LLVM目录下运行\lstinline{node ./tests/test-main.js}。
     \par 运行测试程序，会将调试信息输出在命令行，而输出到result.ll的则不带调试信息只保留有效的解析结果。
     \par 在安装有clang的Linux机器上，可以通过\lstinline[language=sh]{clang -o result result.ll}来进行编译，然后通过\lstinline[language=sh]{./result} 来运行。
@@ -277,30 +277,29 @@
 
     \par $\rightarrow$为AST构造规则，左边是规则表达式(产生式)，右边是AST树的构造规则。例如:
     \begin{verbatim}
-    functionHeader
-    :   type ID '(' ( formalParameter ( ',' formalParameter )* )? ')'
-    	-> ^(FUNC_HEADER type ^(FUNC_NAME ID) formalParameter*)
+functionHeader
+:   type ID '(' ( formalParameter ( ',' formalParameter )* )? ')'
+	-> ^(FUNC_HEADER type ^(FUNC_NAME ID) formalParameter*)
     \end{verbatim}
     \par 右边括号里面第一个元素是操作符，将作为树的根节点，其它元素为操作数，作为树的子节点。如果$\rightarrow$右边为空，表示不构造AST节点；右边只有一个表达式，表示只构造一个AST 节点，而不是AST树，例如assignmentOp: '=' $\rightarrow$ ASSIGN。
     \par 举个简单的例子，将以下的几句简单的C语言代码转化成AST为：
-    \begin{verbatim}
-    ArrayList* createList()
-    {
-        ArrayList* result;
-        result = (ArrayList*)malloc(12);
-        return result;
-    }
-    \end{verbatim}
+    \begin{lstlisting}
+ArrayList* createList()
+{
+    ArrayList* result;
+    result = (ArrayList*)malloc(12);
+    return result;
+}
+    \end{lstlisting}
     \begin{center}
     \includegraphics[width=6in]{ASTdemo.png}
     \end{center}
 
     \subsection{语法及语义检查}
-    \subsubsection{实现概况}
     这部分应该遍历AST进行相应的检查，至少应包括变量、函数、类型等在内的不同标识符的作用域检查、函数参数列表检查等。考虑到每一种标识符的检查都是复杂繁琐的，由于时间有限，我们只对变量进行了作用域检查，其他的语法语义大同小异。
 
-    \subsubsection{变量作用域检查}
-    维护一张变量表paramTable，是普通的js对象，作为key-value映射表使用，以变量名作为key，而value则是该变量的作用域表。
+    \par\noindent\textbf{实现方法}
+    \par 维护一张变量表paramTable，是普通的js对象，作为key-value映射表使用，以变量名作为key，而value则是该变量的作用域表。
     \par 每个变量的作用域表都是一个数组，其中填充布尔值，表示数组下标对应的作用域等级是否有该名称变量的定义，true表示有。
     \par 对于C语言的不同作用域，其作用域等级可能不同。全局作用域的作用域等级为1，每进入一个函数或一个BLOCK作用域（也就是大括号限定的作用域），作用域等级+1；每完成一个函数或BLOCK，释放该作用域的所有变量并恢复作用域等级。
     \par 当在特定作用域声明一个变量时，若该变量在当前作用域已经存在，就报错，形如：
@@ -327,7 +326,7 @@ not found: ParamName
 	\par data.params中存储中当前作用域中的所有变量，包括各个变量的在c代码中的变量名、类型、是否为指针类型、作用域等级、在llvm代码中的变量名。data.pmap则存储着llvm的变量表，以在llvm代码中的变量名作为key，而value则是该变量的在params表中对应的名字。llvm中没有直接对应的字符串类型，故而data.cstr中存储着代码中所有的字符常量。
 
 	\par paramlv标识C语言中不同作用域的作用域等级，标识方法同变量作用域检查。全局作用域的作用域等级为1，每进入一个函数或一个BLOCK 作用域（也就是大括号限定的作用域），作用域等级+1；每完成一个函数或BLOCK，释放该作用域的所有变量并恢复作用域等级。
-	\par 鉴于llvm代码比较底层，很多c代码中可以一步完成的操作在llvm代码中会增加很多中间过程，而一些临时变量会用”\%+数字”表示，pmapcount的作用就是标识临时变量的编号，依次加1，使之不发生冲突。同样labelcount的作用是对if、while、for循环的label编号进行标识，使之在跳转的时候能找到唯一的编号。currentFunc的作用在函数调用的时候模拟栈，在调用函数的时候进行push操作，在函数返回的时候进行pop操作，以此达到正确实现函数间跳转、正确找到函数返回位置的label以及函数间嵌套调用的目的。body中存储着生成的llvm代码，在遍历AST时调用this.body.push(str)即可逐句写入。
+	\par 鉴于llvm代码比较底层，很多c代码中可以一步完成的操作在llvm代码中会增加很多中间过程，而一些临时变量会用“\%+数字”表示，pmapcount的作用就是标识临时变量的编号，依次加1，使之不发生冲突。同样labelcount的作用是对if、while、for循环的label编号进行标识，使之在跳转的时候能找到唯一的编号。currentFunc的作用在函数调用的时候模拟栈，在调用函数的时候进行push操作，在函数返回的时候进行pop操作，以此达到正确实现函数间跳转、正确找到函数返回位置的label以及函数间嵌套调用的目的。body中存储着生成的llvm代码，在遍历AST时调用this.body.push(str)即可逐句写入。
 	\par 在目标代码生成时，通过自顶向下的方式遍历AST对各个文法记号进行解析，并将对应文法结构进行相应的转换，生成相应的llvm代码，写入body字段，大体解析过程如下图所示，具体的生成转换过程可进入相应的handle函数查阅。
 
 {
@@ -339,37 +338,37 @@ not found: ParamName
   two children at (0.5,-0.7) and (0.5,-1.4)},
   edge from parent path={(\tikzparentnode.south) |- (\tikzchildnode.west)}]
   \node [optional] {handlePROG}
-    child { node [optional] {handleINCLUDE $|$ 处理INCLUDE\_SYSTEM记号}
-        child { node {case 'stdlib'}}
-        child { node {case 'stdio'}}
+    child { node [optional] {handleINCLUDE $|$ 处理INCLUDE\_SYSTEM}
+        child { node {case stdlib}}
+        child { node {case stdio}}
     }
     child [missing] {}
     child [missing] {}
-    child { node [optional] {handleTYPEDEF $|$ 处理TYPE\_DEF记号}
+    child { node [optional] {handleTYPEDEF $|$ 处理TYPE\_DEF}
         child { node {setType}}
     }
     child [missing] {}
-    child { node [optional] {handleSTRUCT $|$ 处理STRUCT\_DEF记号}
+    child { node [optional] {handleSTRUCT $|$ 处理STRUCT\_DEF}
         child { node {setStruct}}
     }
     child [missing] {}
-    child { node [optional] {handleFUNC $|$ 处理FUNC\_DEF记号}
-        child { node [optional] {handleFUNCHEAD $|$ 处理FUNC\_HEAD记号}
+    child { node [optional] {handleFUNC $|$ 处理FUNC\_DEF}
+        child { node [optional] {handleFUNCHEAD $|$ 处理FUNC\_HEAD}
             child { node {setFunc}}
             child { node {currentFunc.push}}
         }
         child [missing] {}
         child [missing] {}
-        child { node [optional] {handleBLOCK $|$ 处理BLOCK记号}
-            child { node [optional] {handleVARDEF $|$ 处理VAR\_DEF记号}
+        child { node [optional] {handleBLOCK $|$ 处理BLOCK}
+            child { node [optional] {handleVARDEF $|$ 处理VAR\_DEF}
             }
-            child { node [optional] {handleIFSTAT $|$ 处理IF\_STAT记号}
+            child { node [optional] {handleIFSTAT $|$ 处理IF\_STAT}
                 child { node [optional] {handleCONDITION}}
                 child { node [optional] {handleBLOCK}}
             }
             child [missing] {}
             child [missing] {}
-            child { node [optional] {handleFORSTAT $|$ 处理FOR\_STAT记号}
+            child { node [optional] {handleFORSTAT $|$ 处理FOR\_STAT}
                 child { node [optional] {handleASSIGN}}
                 child { node [optional] {handleCONDITION}}
                 child { node [optional] {handleBLOCK}}
@@ -379,13 +378,13 @@ not found: ParamName
             child [missing] {}
             child [missing] {}
             child [missing] {}
-            child { node [optional] {handleWHILESTAT $|$ 处理WHILE\_STAT记号}
+            child { node [optional] {handleWHILESTAT $|$ 处理WHILE\_STAT}
                 child { node [optional] {handleCONDITION}}
                 child { node [optional] {handleBLOCK}}
             }
             child [missing] {}
             child [missing] {}
-            child { node [optional] {handleASSIGN $|$ 处理ASSIGNMENT记号}
+            child { node [optional] {handleASSIGN $|$ 处理ASSIGNMENT}
                 child { node [optional] {handlePREFIX\_PLUS}}
                 child { node [optional] {handlePREFIX\_MINUS}}
                 child { node [optional] {handleFUNC\_INVOKE}}
@@ -397,7 +396,7 @@ not found: ParamName
             child [missing] {}
             child [missing] {}
             child [missing] {}
-            child { node [optional] {handleJUMPSTAT $|$ 处理JUMP\_STAT记号}
+            child { node [optional] {handleJUMPSTAT $|$ 处理JUMP\_STAT}
                 child { node [optional] {handleJUMP\_RETURN}}
             }
         }
@@ -427,8 +426,6 @@ not found: ParamName
 ;
 \end{tikzpicture}
 }
-
-
 
     \subsubsection{目前支持的C语言特性}
     \begin{enumerate}
