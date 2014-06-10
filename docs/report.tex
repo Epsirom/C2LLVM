@@ -131,7 +131,7 @@
     %\Huge{title}
     %\vspace{25pt} % 25pt between title and text
     %\end{center}
-    \title{\huge{计算机与网络体系结构（2）}\\\Large{编译原理}\\{\large 大作业：简单编译器的实现}}
+    \title{\huge{计算机与网络体系结构（2）}\\\Large{编译原理}\\{\large 简单编译器的实现：将C语言编译为LLVM}}
     \author{
     软件11\hspace{10pt}陈　璐\hspace{10pt}2011013249\\
     软件12\hspace{10pt}王肖佑\hspace{10pt}2011013273\\
@@ -145,6 +145,7 @@
     \section{实验背景}
     \subsection{实验环境}
     如需复现实验结果请准备一台PC机并安装Windows/OS X/Linux等桌面系统，然后安装$>=0.10.24$版本的\textit{Node}。
+    \par 如需将实验结果编译为可执行程序，需要一台PC机并安装Linux桌面系统，同时通过\textit{apt-get}安装最新版本的\textit{clang}。
 
     \subsection{目录结构}
 {
@@ -155,89 +156,106 @@
   grow via three points={one child at (0.5,-0.7) and
   two children at (0.5,-0.7) and (0.5,-1.4)},
   edge from parent path={(\tikzparentnode.south) |- (\tikzchildnode.west)}]
-  \node {2011013236}
+  \node {C2LLVM}
     child { node [optional] {source $|$ 源码}
-        child { node [optional] {BibJS}
+        child { node [optional] {C2LLVM}
             child { node [optional] {lib $|$ 库文件}
-                child { node [optional] {automata $|$ 自动机\footnotemark[1]}
-                    child { node {inner-data.js $|$ 定义自动机的数据}}
-                    child { node {runner.js $|$ 自动机的运行器}}
-                }
-                child [missing] {}
-                child [missing] {}
-                child { node [optional] {scanner $|$ 词法单元扫描器}
-                    child { node {token-types.js $|$ 支持的词法单元类型}}
-                    child { node {char-token.js $|$ 字符单元}}
-                    child { node {token.js $|$ 词法单元}}
-                    child { node {scanner.js $|$ 扫描器}}
+                child { node [optional] {parser $|$ 词法语法分析器}
+                    child { node {parser-entry.js $|$ 分析器类CParser}}
+                    child { node {SimpleCv4.g $|$ 语法文件}}
+                    child { node {SimpleCv4.tokens $|$ 语法的Token文件}}
+                    child { node {SimpleCv4Lexer.js $|$ 词法分析}}
+                    child { node {SimpleCv4Parser.js $|$ 语法分析}}
                 }
                 child [missing] {}
                 child [missing] {}
                 child [missing] {}
                 child [missing] {}
-                child { node {bibdad.js $|$ Bib解析器}}
+                child [missing] {}
+                child { node [optional] {inspector $|$ 语法语义检查器}
+                    child { node {id-inspector.js $|$ 变量作用域检查}}
+                }
+                child [missing] {}
+                child { node [optional] {generator $|$ 目标代码生成器}
+                    child { node {LLVM.js $|$ 生成LLVM代码}}
+                }
+                child [missing] {}
+                child { node {antlr-3.3.jar $|$ ANTLR分析工具}}
+                child { node {errmgr.js $|$ 错误管理器，保存错误信息，格式化输出}}
+                child { node {compiler.js $|$ Compiler类}}
             }
-                child [missing] {}
-                child [missing] {}
-                child [missing] {}
-                child [missing] {}
-                child [missing] {}
-                child [missing] {}
-                child [missing] {}
-                child [missing] {}
-                child [missing] {}
+            child [missing] {}
+            child [missing] {}
+            child [missing] {}
+            child [missing] {}
+            child [missing] {}
+            child [missing] {}
+            child [missing] {}
+            child [missing] {}
+            child [missing] {}
+            child [missing] {}
+            child [missing] {}
+            child [missing] {}
+            child [missing] {}
             child { node [optional] {tests $|$ 自动化测试}
                 child { node [optional] {data $|$ 测试数据}
-                    child { node {example.bib $|$ 测试文件}}
+                    child { node {arraylist.c $|$ 测试文件}}
+                    child { node {arraylist.ll $|$ 使用clang编译为LLVM的结果}}
                 }
                 child [missing] {}
-                child { node [selected] {test-bib.js $|$ 测试执行入口，可通过npm调用}}
+                child [missing] {}
+                child { node [selected] {test-main.js $|$ 测试执行入口，可通过npm调用}}
             }
-                child [missing] {}
-                child [missing] {}
-                child [missing] {}
+            child [missing] {}
+            child [missing] {}
+            child [missing] {}
+            child [missing] {}
             child { node {index.js $|$ 库入口}}
-    child { node {... $|$ 其他文件，包括定义库的package.json等}}
+            child { node {... $|$ 其他文件，包括定义库的package.json等}}
         }
     }
-                child [missing] {}
-                child [missing] {}
-                child [missing] {}
-                child [missing] {}
-                child [missing] {}
-                child [missing] {}
-                child [missing] {}
-                child [missing] {}
-                child [missing] {}
-                child [missing] {}
-                child [missing] {}
-                child [missing] {}
-                child [missing] {}
-                child [missing] {}
-                child [missing] {}
-                child [missing] {}
-                child [missing] {}
+    child [missing] {}
+    child [missing] {}
+    child [missing] {}
+    child [missing] {}
+    child [missing] {}
+    child [missing] {}
+    child [missing] {}
+    child [missing] {}
+    child [missing] {}
+    child [missing] {}
+    child [missing] {}
+    child [missing] {}
+    child [missing] {}
+    child [missing] {}
+    child [missing] {}
+    child [missing] {}
+    child [missing] {}
+    child [missing] {}
+    child [missing] {}
+    child [missing] {}
+    child [missing] {}
+    child [missing] {}
     child { node {report.pdf $|$ 本报告}}
-    child { node {README.txt $|$ 请先阅读此文件}}
-    child { node {result.txt $|$ 本实验所给example.bib的解析结果}}
+    child { node {result.ll $|$ 本编译器对tests/data/arraylist.c的编译结果}}
 ;
 \end{tikzpicture}
 }
-\footnotetext[1]{无$\epsilon$转移的单状态非确定型有限自动机}
 
     \subsection{完成情况与测试}
     \label{sec:abouttest}
-    本实验中，通过Node.js完成了一个Bib文件解析库BibJS，可作为包供第三方Node.js应用引入。还借助这个库完成了符合实验要求的测试程序。由于所用编程语言是脚本语言，因此不需要提交可执行的版本。
-    \par 本次作业提交在了Github上，在作业提交的截止时间前以私有库存在，作业提交截止时间后就修改为公开库，git版本库的地址为：\href{https://github.com/Epsirom/BibJS}{https://github.com/Epsirom/BibJS}。
-    \par 如果在安装了npm的机器上进行测试，可以直接在BibJS目录下运行\lstinline[language=sh]{npm test}，将以./tests/data/example.bib为输入，处理结果将输出到./tests/data/result.txt。
-    \par 如果在未安装npm的机器上进行测试，请以BibJS目录为工作目录运行./tests/test-bib.js，即在BibJS目录下运行\lstinline{node ./tests/test-bib.js}。
-    \par 运行测试程序，会将带调试信息的结果输出在命令行，而输出到result.txt的则不带调试信息只保留有效的解析结果。
+    本实验中，通过Node.js完成了一个以C语言为前端语言，LLVM为后端语言的编译库C2LLVM，可作为包供第三方Node.js应用引入。还借助这个库完成了符合实验要求的测试程序。由于所用编程语言是脚本语言，因此不需要提交可执行的版本。
+    \par 本次作业提交在了Github上，在作业提交的截止时间前以私有库存在，作业提交截止时间后就修改为公开库，git版本库的地址为：\href{https://github.com/Epsirom/C2LLVM}{https://github.com/Epsirom/C2LLVM}。
+    \par 如果在安装了npm的机器上进行测试，可以直接在C2LLVM目录下运行\lstinline[language=sh]{npm test}，将以./tests/data/arraylist.c为输入，处理结果将输出到./tests/data/result.ll（该文件的副本已经提供在提交目录的根目录中）。
+    \par 如果在未安装npm的机器上进行测试，请以C2LLVM目录为工作目录运行./tests/test-main.js，即在./source/C2LLVM目录下运行\lstinline{node ./tests/test-main.js}。
+    \par 运行测试程序，会将调试信息输出在命令行，而输出到result.ll的则不带调试信息只保留有效的解析结果。
+    \par 在安装有clang的Linux机器上，可以通过\lstinline[language=sh]{clang -o result result.ll}来进行编译，然后通过\lstinline[language=sh]{./result}来运行。
 
     \section{实验分析}
     \subsection{整体思路}
-    我将本次实验目标分为两部分：第一部分通过构建自动机A由字符串分析词法单元；第二部分通过构建自动机B由词法单元构建Bib数据对象。进行Bib解析时，先通过自动机A分析出一个词法单元，将该词法单元作为自动机B的一次输入，然后再通过自动机A分析出一个词法单元作为自动机B的新一次输入，不断进行下去直到发生错误或完整解析了一个Bib对象。
-    \par 两部分所用的自动机都是“无$\epsilon$转移的单状态非确定型有限自动机”，这种自动机是我自行定义的，兼顾DFA的实现简单和NFA的一部分灵活性，能比较方便地应用在本次实验中。
-    \par 实际上本实验的要求可以通过先编写一个涵盖自动机和词法分析的Bib解析库，然后借助该库对输入文件进行分析并按格式输出结果，这样一种方式来完成。我正是这么做的。
+    我们将实验分为三个部分：第一部分借助ANTLR和手动编写的语法文件进行词法语法分析并构建语法分析树AST；第二部分通过手动遍历AST的方式进行语法及语义检查；第三部分仍是通过手动遍历AST的方式进行目标代码生成。
+    \par 实际上借助于ANTLR工具和手动的编码能完成以上三部分的全部工作，但后两部分我们仍决定通过手动遍历AST的方式来实现，以此减少最终代码量，希望能提高效率。
+    \par 我们的编译器支持大量语法特性，依照要求本应针对每个特性写一个测试程序，但为简单起见，我们只提供了arraylist.c这一测试程序，它对应的是实验要求中输入程序c，也就是array-list。在arraylist.c中不仅涵盖实验要求中的类（考虑C语言的特性，用结构体来替代）、成员变量、成员函数（考虑C语言的特性，用包含结构体变量作为参数的全局函数来替代）、动态内存分配等，还包括类型定义、动态内存释放、内存段拷贝、数组、显式类型转换、隐式类型转换、递归、多种循环体等在内的大量语法特性，基本能说明我们的编译器拥有较好的编译能力。
 
     \subsection{词法、语法分析}
 
@@ -247,11 +265,26 @@
 
     \subsection{语法及语义检查}
     \subsubsection{实现概况}
+    这部分应该遍历AST进行相应的检查，至少应包括变量、函数、类型等在内的不同标识符的作用域检查、函数参数列表检查等。考虑到每一种标识符的检查都是复杂繁琐的，由于时间有限，我们只对变量进行了作用域检查，其他的语法语义大同小异。
 
     \subsubsection{变量作用域检查}
+    维护一张变量表paramTable，是普通的js对象，作为key-value映射表使用，以变量名作为key，而value则是该变量的作用域表。
+    \par 每个变量的作用域表都是一个数组，其中填充布尔值，表示数组下标对应的作用域等级是否有该名称变量的定义，true表示有。
+    \par 对于C语言的不同作用域，其作用域等级可能不同。全局作用域的作用域等级为1，每进入一个函数或一个BLOCK作用域（也就是大括号限定的作用域），作用域等级+1；每完成一个函数或BLOCK，释放该作用域的所有变量并恢复作用域等级。
+    \par 当在特定作用域声明一个变量时，若该变量在当前作用域已经存在，就报错，形如：
+    \begin{verbatim}
+existed: ParamName
+    \end{verbatim}
+    \par 当在特定作用域中调用了一个变量时，若该变量在变量表中没有定义（如果某个变量释放后其对应的作用域表均为false，会删除该变量的作用域表，这样在变量表中没有定义的变量就是在当前作用域不可用的），就报错，形如：
+    \begin{verbatim}
+not found: ParamName
+    \end{verbatim}
 
     \subsection{目标代码生成}
     \subsubsection{实现概况}
+    前面我们已经完成了AST的构建并通过自顶向下的方式遍历AST完成了语法及语义的检查。到了目标代码生成阶段，虽然我们进行的语法及语义检查并不完善，但现在可以认为AST中不存在语法及语义错误，实际上在目标代码生成阶段就应该做这样的假设。
+    \par 进行目标代码生成同样可以直接通过编写tree grammar来进行，但我们仍采用了手动遍历的方式进行，虽然增加了手动编码量，但减少了最终代码量，希望能以此提高效率。
+    \par 经过努力，我们支持了在编译过程中保持大量语言特性，甚至已经拥有编译稍微复杂的C语言程序的能力。
 
     \subsubsection{自顶向下基于模板的目标代码生成}
 
@@ -266,9 +299,91 @@
     \par 若analyze返回false，说明解析失败，判断此时是完成了解析还是解析过程中出错，如果是解析过程中出错，就打印错误信息（会打印出在输入串的第几个字节解析出错，并打印该字节附近以15字节为半径的字符串，空白符会全部替换为空格），错误信息的显示效果还算不错。
 
     \section{实验结果}
-    本实验提供的example.bib的解析结果见result.txt。
-    \par 在控制台的输出与result.txt不同，还带有调试信息，您可以试试按\ref{sec:abouttest}的步骤运行。
-    \par 也可以试试修改BibJS/tests/data/example.bib使之不符合Bib规范，再运行看看控制台是怎样输出错误信息的。
+    本实验提供的arraylist.c的解析结果见result.ll。
+    \par arraylist.c中定义了结构体ArrayList，实现了创建、释放、扩增容量、插入数据、删除数据（两种方式：根据索引、根据值）、排序、功能测试等函数。在其中频繁进行选择判断、循环、函数调用等，其复杂性基本能说明我们的编译器已经对较复杂C语言程序有不错的支持。但其中有些地方仍按照奇怪的方式来书写，比如为了避免类似\lstinline{char *a, *b, c;}这样语句造成的处理难度，我们的编译器只支持\lstinline{char *a; char *b; char c;}这样的方式来定义变量。
+    \par 值得一提的是，clang的编译结果（tests/data/arraylist.ll）为33KB，809行；而我们的编译结果（result.ll）为27KB，707行。实际上我们的编译器不会处理相同的字符串，而clang是处理了的，如果我们再加上处理相同字符串的功能，编译结果将能进一步缩减尺寸。
+    \par 将result.ll在Linux环境下，用\lstinline[language=sh]{clang -o result result.ll}将其编译为二进制文件，然后执行\lstinline[language=sh]{./result}，输出结果如下。这与clang直接编译arraylist.c的结果表现一致。可以看到各个功能都被正确地执行了，特别是排序，涉及比较复杂的过程，这些正确的结果有理由让我们相信我们的编译结果是正确的。
+    \begin{verbatim}
+Start test ArrayList.
+
+> Create an ArrayList.
+>> Action: <empty>
+>>> Returned: 0x9184008
+
+> Initialize the ArrayList.
+>> Action: list1.init()
+>>> Returned: 0x0
+
+> Create an ArrayList.
+>> Action: <empty>
+>>> Returned: 0x9184030
+
+> Initialize the ArrayList.
+>> Action: list2.init()
+>>> Returned: 0x0
+
+> Insert to the ArrayList.
+>> Action: list1[0]=5
+>>> Returned: 0x0
+
+> Insert to the ArrayList.
+>> Action: list1[1]=2
+>>> Returned: 0x0
+
+> Insert to the ArrayList.
+>> Action: list1[2]=8
+>>> Returned: 0x0
+
+> Insert to the ArrayList.
+>> Action: list1[3]=9
+>>> Returned: 0x0
+
+> Remove from the ArrayList by value
+>> Action: list1.removeValue(9)
+>>> Returned: 0x0
+
+> Insert to the ArrayList.
+>> Action: list1[3]=0
+>>> Returned: 0x0
+
+> Insert to the ArrayList.
+>> Action: list1[4]=6
+>>> Returned: 0x0
+
+> Insert to the ArrayList.
+>> Action: list2[0]=7
+>>> Returned: 0x0
+
+> Insert to the ArrayList.
+>> Action: list2[0]=0
+>>> Returned: 0x0
+
+> Insert to the ArrayList.
+>> Action: list2[0]=9
+>>> Returned: 0x0
+
+> Insert to the ArrayList.
+>> Action: list2[0]=2
+>>> Returned: 0x0
+
+> Insert to the ArrayList.
+>> Action: list2[0]=4
+>>> Returned: 0x0
+
+> Sort the combined ArrayList.
+>> Action: list1.sort()
+>>> Returned: 0x9184008
+
+Sorted list1: 0 2 5 6 8
+
+> Delete the ArrayList.
+>> Action: list1
+>>> Returned: 0x0
+
+> Delete the ArrayList.
+>> Action: list2
+>>> Returned: 0x0
+    \end{verbatim}
 
 \clearpage
 \end{CJK*}
