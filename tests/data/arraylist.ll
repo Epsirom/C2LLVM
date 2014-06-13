@@ -20,19 +20,24 @@ target triple = "x86_64-apple-macosx10.9.0"
 @.str13 = private unnamed_addr constant [21 x i8] c"list1.removeValue(9)\00", align 1
 @.str14 = private unnamed_addr constant [11 x i8] c"list1[3]=0\00", align 1
 @.str15 = private unnamed_addr constant [11 x i8] c"list1[4]=6\00", align 1
-@.str16 = private unnamed_addr constant [11 x i8] c"list2[0]=7\00", align 1
-@.str17 = private unnamed_addr constant [11 x i8] c"list2[0]=0\00", align 1
-@.str18 = private unnamed_addr constant [11 x i8] c"list2[0]=9\00", align 1
-@.str19 = private unnamed_addr constant [11 x i8] c"list2[0]=2\00", align 1
-@.str20 = private unnamed_addr constant [11 x i8] c"list2[0]=4\00", align 1
-@.str21 = private unnamed_addr constant [29 x i8] c"Sort the combined ArrayList.\00", align 1
-@.str22 = private unnamed_addr constant [13 x i8] c"list1.sort()\00", align 1
-@.str23 = private unnamed_addr constant [14 x i8] c"Sorted list1:\00", align 1
-@.str24 = private unnamed_addr constant [4 x i8] c" %d\00", align 1
-@.str25 = private unnamed_addr constant [3 x i8] c"\0A\0A\00", align 1
-@.str26 = private unnamed_addr constant [22 x i8] c"Delete the ArrayList.\00", align 1
-@.str27 = private unnamed_addr constant [6 x i8] c"list1\00", align 1
-@.str28 = private unnamed_addr constant [6 x i8] c"list2\00", align 1
+@.str16 = private unnamed_addr constant [11 x i8] c"list1[0]=7\00", align 1
+@.str17 = private unnamed_addr constant [11 x i8] c"list1[0]=0\00", align 1
+@.str18 = private unnamed_addr constant [11 x i8] c"list1[0]=9\00", align 1
+@.str19 = private unnamed_addr constant [11 x i8] c"list1[0]=2\00", align 1
+@.str20 = private unnamed_addr constant [11 x i8] c"list1[0]=4\00", align 1
+@.str21 = private unnamed_addr constant [11 x i8] c"list2[0]=7\00", align 1
+@.str22 = private unnamed_addr constant [11 x i8] c"list2[0]=0\00", align 1
+@.str23 = private unnamed_addr constant [11 x i8] c"list2[0]=9\00", align 1
+@.str24 = private unnamed_addr constant [11 x i8] c"list2[0]=2\00", align 1
+@.str25 = private unnamed_addr constant [11 x i8] c"list2[0]=4\00", align 1
+@.str26 = private unnamed_addr constant [29 x i8] c"Sort the combined ArrayList.\00", align 1
+@.str27 = private unnamed_addr constant [13 x i8] c"list1.sort()\00", align 1
+@.str28 = private unnamed_addr constant [14 x i8] c"Sorted list1:\00", align 1
+@.str29 = private unnamed_addr constant [4 x i8] c" %d\00", align 1
+@.str30 = private unnamed_addr constant [3 x i8] c"\0A\0A\00", align 1
+@.str31 = private unnamed_addr constant [22 x i8] c"Delete the ArrayList.\00", align 1
+@.str32 = private unnamed_addr constant [6 x i8] c"list1\00", align 1
+@.str33 = private unnamed_addr constant [6 x i8] c"list2\00", align 1
 
 ; Function Attrs: nounwind ssp uwtable
 define %struct.arrayList* @createList() #0 {
@@ -330,55 +335,70 @@ define i32 @insertToList(%struct.arrayList* %list, i32 %val, i32 %index) #0 {
   store i32 %val, i32* %2, align 4
   store i32 %index, i32* %3, align 4
   %4 = load %struct.arrayList** %1, align 8
-  %5 = getelementptr inbounds %struct.arrayList* %4, i32 0, i32 1
+  %5 = getelementptr inbounds %struct.arrayList* %4, i32 0, i32 0
   %6 = load i32* %5, align 4
-  store i32 %6, i32* %i, align 4
-  br label %7
+  %7 = load %struct.arrayList** %1, align 8
+  %8 = getelementptr inbounds %struct.arrayList* %7, i32 0, i32 1
+  %9 = load i32* %8, align 4
+  %10 = icmp sle i32 %6, %9
+  br i1 %10, label %11, label %14
 
-; <label>:7                                       ; preds = %26, %0
-  %8 = load i32* %i, align 4
-  %9 = load i32* %3, align 4
-  %10 = icmp sgt i32 %8, %9
-  br i1 %10, label %11, label %29
+; <label>:11                                      ; preds = %0
+  %12 = load %struct.arrayList** %1, align 8
+  %13 = call i32 @expandList(%struct.arrayList* %12)
+  br label %14
 
-; <label>:11                                      ; preds = %7
-  %12 = load i32* %i, align 4
-  %13 = sub nsw i32 %12, 1
-  %14 = sext i32 %13 to i64
+; <label>:14                                      ; preds = %11, %0
   %15 = load %struct.arrayList** %1, align 8
-  %16 = getelementptr inbounds %struct.arrayList* %15, i32 0, i32 2
-  %17 = load i32** %16, align 8
-  %18 = getelementptr inbounds i32* %17, i64 %14
-  %19 = load i32* %18, align 4
-  %20 = load i32* %i, align 4
-  %21 = sext i32 %20 to i64
-  %22 = load %struct.arrayList** %1, align 8
-  %23 = getelementptr inbounds %struct.arrayList* %22, i32 0, i32 2
-  %24 = load i32** %23, align 8
-  %25 = getelementptr inbounds i32* %24, i64 %21
-  store i32 %19, i32* %25, align 4
-  br label %26
+  %16 = getelementptr inbounds %struct.arrayList* %15, i32 0, i32 1
+  %17 = load i32* %16, align 4
+  store i32 %17, i32* %i, align 4
+  br label %18
 
-; <label>:26                                      ; preds = %11
-  %27 = load i32* %i, align 4
-  %28 = add nsw i32 %27, -1
-  store i32 %28, i32* %i, align 4
-  br label %7
+; <label>:18                                      ; preds = %37, %14
+  %19 = load i32* %i, align 4
+  %20 = load i32* %3, align 4
+  %21 = icmp sgt i32 %19, %20
+  br i1 %21, label %22, label %40
 
-; <label>:29                                      ; preds = %7
-  %30 = load i32* %2, align 4
-  %31 = load i32* %3, align 4
+; <label>:22                                      ; preds = %18
+  %23 = load i32* %i, align 4
+  %24 = sub nsw i32 %23, 1
+  %25 = sext i32 %24 to i64
+  %26 = load %struct.arrayList** %1, align 8
+  %27 = getelementptr inbounds %struct.arrayList* %26, i32 0, i32 2
+  %28 = load i32** %27, align 8
+  %29 = getelementptr inbounds i32* %28, i64 %25
+  %30 = load i32* %29, align 4
+  %31 = load i32* %i, align 4
   %32 = sext i32 %31 to i64
   %33 = load %struct.arrayList** %1, align 8
   %34 = getelementptr inbounds %struct.arrayList* %33, i32 0, i32 2
   %35 = load i32** %34, align 8
   %36 = getelementptr inbounds i32* %35, i64 %32
   store i32 %30, i32* %36, align 4
-  %37 = load %struct.arrayList** %1, align 8
-  %38 = getelementptr inbounds %struct.arrayList* %37, i32 0, i32 1
-  %39 = load i32* %38, align 4
-  %40 = add nsw i32 %39, 1
-  store i32 %40, i32* %38, align 4
+  br label %37
+
+; <label>:37                                      ; preds = %22
+  %38 = load i32* %i, align 4
+  %39 = add nsw i32 %38, -1
+  store i32 %39, i32* %i, align 4
+  br label %18
+
+; <label>:40                                      ; preds = %18
+  %41 = load i32* %2, align 4
+  %42 = load i32* %3, align 4
+  %43 = sext i32 %42 to i64
+  %44 = load %struct.arrayList** %1, align 8
+  %45 = getelementptr inbounds %struct.arrayList* %44, i32 0, i32 2
+  %46 = load i32** %45, align 8
+  %47 = getelementptr inbounds i32* %46, i64 %43
+  store i32 %41, i32* %47, align 4
+  %48 = load %struct.arrayList** %1, align 8
+  %49 = getelementptr inbounds %struct.arrayList* %48, i32 0, i32 1
+  %50 = load i32* %49, align 4
+  %51 = add nsw i32 %50, 1
+  store i32 %51, i32* %49, align 4
   ret i32 0
 }
 
@@ -733,69 +753,84 @@ define i32 @main() #0 {
   %25 = load %struct.arrayList** %list1, align 8
   %26 = call i32 @insertToList(%struct.arrayList* %25, i32 6, i32 4)
   call void @printLog(i8* getelementptr inbounds ([25 x i8]* @.str7, i32 0, i32 0), i8* getelementptr inbounds ([11 x i8]* @.str15, i32 0, i32 0), i32 %26)
-  %27 = load %struct.arrayList** %list2, align 8
+  %27 = load %struct.arrayList** %list1, align 8
   %28 = call i32 @insertToList(%struct.arrayList* %27, i32 7, i32 0)
   call void @printLog(i8* getelementptr inbounds ([25 x i8]* @.str7, i32 0, i32 0), i8* getelementptr inbounds ([11 x i8]* @.str16, i32 0, i32 0), i32 %28)
-  %29 = load %struct.arrayList** %list2, align 8
+  %29 = load %struct.arrayList** %list1, align 8
   %30 = call i32 @insertToList(%struct.arrayList* %29, i32 0, i32 0)
   call void @printLog(i8* getelementptr inbounds ([25 x i8]* @.str7, i32 0, i32 0), i8* getelementptr inbounds ([11 x i8]* @.str17, i32 0, i32 0), i32 %30)
-  %31 = load %struct.arrayList** %list2, align 8
+  %31 = load %struct.arrayList** %list1, align 8
   %32 = call i32 @insertToList(%struct.arrayList* %31, i32 9, i32 0)
   call void @printLog(i8* getelementptr inbounds ([25 x i8]* @.str7, i32 0, i32 0), i8* getelementptr inbounds ([11 x i8]* @.str18, i32 0, i32 0), i32 %32)
-  %33 = load %struct.arrayList** %list2, align 8
+  %33 = load %struct.arrayList** %list1, align 8
   %34 = call i32 @insertToList(%struct.arrayList* %33, i32 2, i32 0)
   call void @printLog(i8* getelementptr inbounds ([25 x i8]* @.str7, i32 0, i32 0), i8* getelementptr inbounds ([11 x i8]* @.str19, i32 0, i32 0), i32 %34)
-  %35 = load %struct.arrayList** %list2, align 8
+  %35 = load %struct.arrayList** %list1, align 8
   %36 = call i32 @insertToList(%struct.arrayList* %35, i32 4, i32 0)
   call void @printLog(i8* getelementptr inbounds ([25 x i8]* @.str7, i32 0, i32 0), i8* getelementptr inbounds ([11 x i8]* @.str20, i32 0, i32 0), i32 %36)
-  %37 = load %struct.arrayList** %list1, align 8
-  %38 = getelementptr inbounds %struct.arrayList* %37, i32 0, i32 1
-  %39 = load i32* %38, align 4
-  %40 = sub nsw i32 %39, 1
-  store i32 %40, i32* %t, align 4
-  %41 = load %struct.arrayList** %list1, align 8
-  %42 = load i32* %t, align 4
-  %43 = call %struct.arrayList* @sortList(%struct.arrayList* %41, i32 0, i32 %42)
-  %44 = load %struct.arrayList** %list1, align 8
-  %45 = ptrtoint %struct.arrayList* %44 to i32
-  call void @printLog(i8* getelementptr inbounds ([29 x i8]* @.str21, i32 0, i32 0), i8* getelementptr inbounds ([13 x i8]* @.str22, i32 0, i32 0), i32 %45)
-  %46 = call i32 (i8*, ...)* @printf(i8* getelementptr inbounds ([14 x i8]* @.str23, i32 0, i32 0))
+  %37 = load %struct.arrayList** %list2, align 8
+  %38 = call i32 @insertToList(%struct.arrayList* %37, i32 7, i32 0)
+  call void @printLog(i8* getelementptr inbounds ([25 x i8]* @.str7, i32 0, i32 0), i8* getelementptr inbounds ([11 x i8]* @.str21, i32 0, i32 0), i32 %38)
+  %39 = load %struct.arrayList** %list2, align 8
+  %40 = call i32 @insertToList(%struct.arrayList* %39, i32 0, i32 0)
+  call void @printLog(i8* getelementptr inbounds ([25 x i8]* @.str7, i32 0, i32 0), i8* getelementptr inbounds ([11 x i8]* @.str22, i32 0, i32 0), i32 %40)
+  %41 = load %struct.arrayList** %list2, align 8
+  %42 = call i32 @insertToList(%struct.arrayList* %41, i32 9, i32 0)
+  call void @printLog(i8* getelementptr inbounds ([25 x i8]* @.str7, i32 0, i32 0), i8* getelementptr inbounds ([11 x i8]* @.str23, i32 0, i32 0), i32 %42)
+  %43 = load %struct.arrayList** %list2, align 8
+  %44 = call i32 @insertToList(%struct.arrayList* %43, i32 2, i32 0)
+  call void @printLog(i8* getelementptr inbounds ([25 x i8]* @.str7, i32 0, i32 0), i8* getelementptr inbounds ([11 x i8]* @.str24, i32 0, i32 0), i32 %44)
+  %45 = load %struct.arrayList** %list2, align 8
+  %46 = call i32 @insertToList(%struct.arrayList* %45, i32 4, i32 0)
+  call void @printLog(i8* getelementptr inbounds ([25 x i8]* @.str7, i32 0, i32 0), i8* getelementptr inbounds ([11 x i8]* @.str25, i32 0, i32 0), i32 %46)
+  %47 = load %struct.arrayList** %list1, align 8
+  %48 = getelementptr inbounds %struct.arrayList* %47, i32 0, i32 1
+  %49 = load i32* %48, align 4
+  %50 = sub nsw i32 %49, 1
+  store i32 %50, i32* %t, align 4
+  %51 = load %struct.arrayList** %list1, align 8
+  %52 = load i32* %t, align 4
+  %53 = call %struct.arrayList* @sortList(%struct.arrayList* %51, i32 0, i32 %52)
+  %54 = load %struct.arrayList** %list1, align 8
+  %55 = ptrtoint %struct.arrayList* %54 to i32
+  call void @printLog(i8* getelementptr inbounds ([29 x i8]* @.str26, i32 0, i32 0), i8* getelementptr inbounds ([13 x i8]* @.str27, i32 0, i32 0), i32 %55)
+  %56 = call i32 (i8*, ...)* @printf(i8* getelementptr inbounds ([14 x i8]* @.str28, i32 0, i32 0))
   store i32 0, i32* %i, align 4
-  br label %47
+  br label %57
 
-; <label>:47                                      ; preds = %62, %0
-  %48 = load i32* %i, align 4
-  %49 = load %struct.arrayList** %list1, align 8
-  %50 = getelementptr inbounds %struct.arrayList* %49, i32 0, i32 1
-  %51 = load i32* %50, align 4
-  %52 = icmp slt i32 %48, %51
-  br i1 %52, label %53, label %65
+; <label>:57                                      ; preds = %72, %0
+  %58 = load i32* %i, align 4
+  %59 = load %struct.arrayList** %list1, align 8
+  %60 = getelementptr inbounds %struct.arrayList* %59, i32 0, i32 1
+  %61 = load i32* %60, align 4
+  %62 = icmp slt i32 %58, %61
+  br i1 %62, label %63, label %75
 
-; <label>:53                                      ; preds = %47
-  %54 = load i32* %i, align 4
-  %55 = sext i32 %54 to i64
-  %56 = load %struct.arrayList** %list1, align 8
-  %57 = getelementptr inbounds %struct.arrayList* %56, i32 0, i32 2
-  %58 = load i32** %57, align 8
-  %59 = getelementptr inbounds i32* %58, i64 %55
-  %60 = load i32* %59, align 4
-  %61 = call i32 (i8*, ...)* @printf(i8* getelementptr inbounds ([4 x i8]* @.str24, i32 0, i32 0), i32 %60)
-  br label %62
+; <label>:63                                      ; preds = %57
+  %64 = load i32* %i, align 4
+  %65 = sext i32 %64 to i64
+  %66 = load %struct.arrayList** %list1, align 8
+  %67 = getelementptr inbounds %struct.arrayList* %66, i32 0, i32 2
+  %68 = load i32** %67, align 8
+  %69 = getelementptr inbounds i32* %68, i64 %65
+  %70 = load i32* %69, align 4
+  %71 = call i32 (i8*, ...)* @printf(i8* getelementptr inbounds ([4 x i8]* @.str29, i32 0, i32 0), i32 %70)
+  br label %72
 
-; <label>:62                                      ; preds = %53
-  %63 = load i32* %i, align 4
-  %64 = add nsw i32 %63, 1
-  store i32 %64, i32* %i, align 4
-  br label %47
+; <label>:72                                      ; preds = %63
+  %73 = load i32* %i, align 4
+  %74 = add nsw i32 %73, 1
+  store i32 %74, i32* %i, align 4
+  br label %57
 
-; <label>:65                                      ; preds = %47
-  %66 = call i32 (i8*, ...)* @printf(i8* getelementptr inbounds ([3 x i8]* @.str25, i32 0, i32 0))
-  %67 = load %struct.arrayList** %list1, align 8
-  call void @deleteList(%struct.arrayList* %67)
-  call void @printLog(i8* getelementptr inbounds ([22 x i8]* @.str26, i32 0, i32 0), i8* getelementptr inbounds ([6 x i8]* @.str27, i32 0, i32 0), i32 0)
-  %68 = load %struct.arrayList** %list2, align 8
-  call void @deleteList(%struct.arrayList* %68)
-  call void @printLog(i8* getelementptr inbounds ([22 x i8]* @.str26, i32 0, i32 0), i8* getelementptr inbounds ([6 x i8]* @.str28, i32 0, i32 0), i32 0)
+; <label>:75                                      ; preds = %57
+  %76 = call i32 (i8*, ...)* @printf(i8* getelementptr inbounds ([3 x i8]* @.str30, i32 0, i32 0))
+  %77 = load %struct.arrayList** %list1, align 8
+  call void @deleteList(%struct.arrayList* %77)
+  call void @printLog(i8* getelementptr inbounds ([22 x i8]* @.str31, i32 0, i32 0), i8* getelementptr inbounds ([6 x i8]* @.str32, i32 0, i32 0), i32 0)
+  %78 = load %struct.arrayList** %list2, align 8
+  call void @deleteList(%struct.arrayList* %78)
+  call void @printLog(i8* getelementptr inbounds ([22 x i8]* @.str31, i32 0, i32 0), i8* getelementptr inbounds ([6 x i8]* @.str33, i32 0, i32 0), i32 0)
   ret i32 0
 }
 

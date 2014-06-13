@@ -162,6 +162,9 @@ int expandList(ArrayList* list)
 int insertToList(ArrayList* list, ListData val, int index)
 {
     int i;
+    if (list->capacity <= list->size) {
+        expandList(list);
+    }
     for (i = list->size; i > index; --i)
     {
         list->data[i] = list->data[i - 1];
@@ -286,6 +289,12 @@ int main()
     printLog("Remove from the ArrayList by value", "list1.removeValue(9)", removeFromListByValue(list1, 9));
     printLog("Insert to the ArrayList.", "list1[3]=0", insertToList(list1, 0, 3));
     printLog("Insert to the ArrayList.", "list1[4]=6", insertToList(list1, 6, 4));
+
+    printLog("Insert to the ArrayList.", "list1[0]=7", insertToList(list1, 7, 0));
+    printLog("Insert to the ArrayList.", "list1[0]=0", insertToList(list1, 0, 0));
+    printLog("Insert to the ArrayList.", "list1[0]=9", insertToList(list1, 9, 0));
+    printLog("Insert to the ArrayList.", "list1[0]=2", insertToList(list1, 2, 0));
+    printLog("Insert to the ArrayList.", "list1[0]=4", insertToList(list1, 4, 0));
 
     printLog("Insert to the ArrayList.", "list2[0]=7", insertToList(list2, 7, 0));
     printLog("Insert to the ArrayList.", "list2[0]=0", insertToList(list2, 0, 0));
